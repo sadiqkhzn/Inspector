@@ -416,5 +416,12 @@ KnownItemSpec(
             "The ~/.cache folder used by many Linux-origin tools (uv, rustup, pre-commit, etc.) when they run on macOS.",
             "Each tool rebuilds its own cache the next time you use it."
         ),
+        KnownItemSpec(
+            "Dropbox cache",
+            "Library/Application Support/Dropbox/instance1/cache",
+            .safe, .cache,
+            "Dropbox client's local sync cache.",
+            "Dropbox rebuilds the cache as it continues syncing. Files on disk and in the cloud are untouched."
+        ),
     ]
 }
