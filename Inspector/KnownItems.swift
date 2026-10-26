@@ -241,5 +241,12 @@ KnownItemSpec(
             "Slack's cached workspace data, including attachments and local search index.",
             "Slack re-downloads workspace state on next launch. You'll stay signed in."
         ),
+        KnownItemSpec(
+            "Discord cache",
+            "Library/Application Support/discord",
+            .review, .appData,
+            "Discord's cache: emoji, images, cached messages for faster scroll.",
+            "Rebuilds as you use Discord. You'll stay signed in."
+        ),
     ]
 }
