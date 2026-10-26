@@ -892,5 +892,12 @@ KnownItemSpec(
             "Colima virtual machine disk and config.",
             "You lose the Colima VM state. Only clear if intentional."
         ),
+        KnownItemSpec(
+            "Podman machines",
+            ".local/share/containers/podman/machine",
+            .review, .devTool,
+            "Podman's VM state.",
+            "You lose the Podman VM. Only clear if intentional."
+        ),
     ]
 }
