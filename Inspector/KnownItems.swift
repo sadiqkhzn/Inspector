@@ -584,5 +584,12 @@ KnownItemSpec(
             "Linear's HTTP cache for issue and avatar data.",
             "Linear syncs from the server on next launch."
         ),
+        KnownItemSpec(
+            "Notion cache",
+            "Library/Application Support/Notion/Cache",
+            .safe, .cache,
+            "Notion's local cache of blocks and attachments.",
+            "Notion re-fetches content as you navigate. You stay signed in."
+        ),
     ]
 }
