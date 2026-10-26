@@ -787,5 +787,12 @@ KnownItemSpec(
             "Tor Browser's local cache.",
             "Rebuilds as you browse."
         ),
+        KnownItemSpec(
+            "Signal cache",
+            "Library/Application Support/Signal/Cache",
+            .safe, .cache,
+            "Signal desktop's local cache for attachments and avatars.",
+            "Signal re-downloads as needed."
+        ),
     ]
 }
