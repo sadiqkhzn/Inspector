@@ -829,5 +829,12 @@ KnownItemSpec(
             "Chrome Canary browser cache.",
             "Rebuilds as you browse. Profile is untouched."
         ),
+        KnownItemSpec(
+            "Chrome Beta cache",
+            "Library/Caches/Google/Chrome Beta",
+            .safe, .cache,
+            "Chrome Beta browser cache.",
+            "Rebuilds as you browse."
+        ),
     ]
 }
