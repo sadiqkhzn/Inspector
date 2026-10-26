@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [base, no-title-modifier, no-searchable, plain-detail, plain-sidebar, no-task]
+        variant: [sb-no-legend, sb-no-selection, sb-no-badge, sb-single-selection, sb-no-help]
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +29,11 @@ jobs:
               "plain-detail": [("            detail\n                .navigationSplitViewColumnWidth", "            Text(\"DETAIL TOP\").frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)\n                .navigationSplitViewColumnWidth")],
               "plain-sidebar": [("            Sidebar(vm: vm)\n", "            List { Text(\"SIDEBAR TOP\"); Text(\"row 2\") }\n")],
               "no-task": [("            await vm.refresh()\n            hasScanned = true", "            hasScanned = true")],
+              "sb-no-legend": [("            facetList\n                .layoutPriority(-1)\n            Divider()\n            TierLegend()", "            facetList")],
+              "sb-no-selection": [("List(selection: selection) {", "List {")],
+              "sb-no-badge": [("        .badge(items.count)\n", "")],
+              "sb-single-selection": [("List(selection: selection) {", "List(selection: .constant(Optional(Facet.safety(nil)))) {")],
+              "sb-no-help": [("                        .help(level.shortExplanation)\n", "")],
           }.get(v, [])
           if subs and isinstance(subs[0], str):
               subs = [tuple(subs)]
