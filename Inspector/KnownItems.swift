@@ -227,5 +227,12 @@ KnownItemSpec(
             "Brave's browser cache. Rebuilt as you browse.",
             "Brave will rebuild it as you browse. Profile, bookmarks, and history stay."
         ),
+        KnownItemSpec(
+            "Arc browser cache",
+            "Library/Caches/Arc",
+            .safe, .cache,
+            "Arc's browser cache.",
+            "Arc will rebuild it as you browse."
+        ),
     ]
 }
