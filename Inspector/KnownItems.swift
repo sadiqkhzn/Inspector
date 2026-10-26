@@ -955,5 +955,12 @@ KnownItemSpec(
             "Blender temp and render cache.",
             "Rebuilds on next render."
         ),
+        KnownItemSpec(
+            "DaVinci Resolve cache",
+            "Movies/DaVinci Resolve/CacheClip",
+            .safe, .cache,
+            "DaVinci Resolve's render cache for clips.",
+            "Resolve rebuilds render caches on timeline playback."
+        ),
     ]
 }
