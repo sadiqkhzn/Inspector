@@ -41,7 +41,7 @@ struct CleanupItem: Identifiable, Hashable {
     var selected: Bool = false
 
     var formattedSize: String {
-        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+        ByteFormatter.string(bytes)
     }
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
@@ -57,12 +57,12 @@ struct DiskSnapshot {
         return Double(usedBytes) / Double(totalBytes) * 100
     }
     var formattedFree: String {
-        ByteCountFormatter.string(fromByteCount: freeBytes, countStyle: .file)
+        ByteFormatter.string(freeBytes)
     }
     var formattedUsed: String {
-        ByteCountFormatter.string(fromByteCount: usedBytes, countStyle: .file)
+        ByteFormatter.string(usedBytes)
     }
     var formattedTotal: String {
-        ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file)
+        ByteFormatter.string(totalBytes)
     }
 }
