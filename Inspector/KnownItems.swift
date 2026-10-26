@@ -906,5 +906,12 @@ KnownItemSpec(
             "UTM virtual machine images.",
             "You lose all VMs. Do not clear unless exported elsewhere."
         ),
+        KnownItemSpec(
+            "VirtualBox VMs",
+            "VirtualBox VMs",
+            .keep, .appData,
+            "VirtualBox virtual machine files.",
+            "You lose all VirtualBox VMs. Do not clear unless intentional."
+        ),
     ]
 }
