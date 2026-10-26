@@ -997,5 +997,12 @@ KnownItemSpec(
             "Shared Apple Loops library used by GarageBand and Logic.",
             "Loops re-download from inside the app when needed."
         ),
+        KnownItemSpec(
+            "Instruments traces",
+            "Library/Developer/Instruments",
+            .review, .devTool,
+            "Saved Instruments trace documents.",
+            "You lose saved performance traces."
+        ),
     ]
 }
