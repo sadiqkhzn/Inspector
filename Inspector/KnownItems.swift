@@ -521,5 +521,12 @@ KnownItemSpec(
             "Conda's cache of downloaded package archives before extraction into envs.",
             "conda install re-downloads archives. Existing environments are untouched."
         ),
+        KnownItemSpec(
+            "Jupyter runtime",
+            "Library/Jupyter/runtime",
+            .safe, .devTool,
+            "Jupyter's temporary runtime data (connection files, kernel IDs).",
+            "Nothing. Fresh runtime files are created when you start a kernel."
+        ),
     ]
 }
