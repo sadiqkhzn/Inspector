@@ -1011,5 +1011,12 @@ KnownItemSpec(
             "Microsoft Error Reporting Protocol cache.",
             "Nothing. Only used for after-the-fact crash reports."
         ),
+        KnownItemSpec(
+            "Element cache",
+            "Library/Application Support/Element/Cache",
+            .safe, .cache,
+            "Element (Matrix client) local cache.",
+            "Element re-downloads as you scroll conversations."
+        ),
     ]
 }
