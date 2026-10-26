@@ -703,5 +703,12 @@ KnownItemSpec(
             "CLion project index cache.",
             "CLion re-indexes on next project open."
         ),
+        KnownItemSpec(
+            "PhpStorm cache",
+            "Library/Caches/JetBrains/PhpStorm",
+            .safe, .devTool,
+            "PhpStorm project index cache.",
+            "PhpStorm re-indexes on next project open."
+        ),
     ]
 }
