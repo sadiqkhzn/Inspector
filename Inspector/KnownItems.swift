@@ -920,5 +920,12 @@ KnownItemSpec(
             "Microsoft OneDrive client cache.",
             "OneDrive rebuilds the cache. Synced files are untouched."
         ),
+        KnownItemSpec(
+            "Google Drive cache",
+            "Library/Application Support/Google/DriveFS/Logs",
+            .safe, .cache,
+            "Google Drive File Stream log directory.",
+            "New logs are written as needed."
+        ),
     ]
 }
