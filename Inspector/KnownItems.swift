@@ -773,5 +773,12 @@ KnownItemSpec(
             "Opera browser cache.",
             "Opera rebuilds the cache as you browse."
         ),
+        KnownItemSpec(
+            "Vivaldi cache",
+            "Library/Caches/com.vivaldi.Vivaldi",
+            .safe, .cache,
+            "Vivaldi browser cache.",
+            "Vivaldi rebuilds the cache as you browse."
+        ),
     ]
 }
