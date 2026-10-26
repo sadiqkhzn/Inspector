@@ -696,5 +696,12 @@ KnownItemSpec(
             "GoLand project index cache.",
             "GoLand re-indexes on next project open."
         ),
+        KnownItemSpec(
+            "CLion cache",
+            "Library/Caches/JetBrains/CLion",
+            .safe, .devTool,
+            "CLion project index cache.",
+            "CLion re-indexes on next project open."
+        ),
     ]
 }
