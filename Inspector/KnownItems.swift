@@ -220,5 +220,12 @@ KnownItemSpec(
             "Edge's browser cache. Pages, images, scripts kept to speed up repeat visits.",
             "Edge will rebuild it as you browse. Bookmarks, history, and extensions are untouched."
         ),
+        KnownItemSpec(
+            "Brave Browser cache",
+            "Library/Caches/BraveSoftware",
+            .safe, .cache,
+            "Brave's browser cache. Rebuilt as you browse.",
+            "Brave will rebuild it as you browse. Profile, bookmarks, and history stay."
+        ),
     ]
 }
