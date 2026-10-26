@@ -948,5 +948,12 @@ KnownItemSpec(
             "Audacity session data including unsaved projects.",
             "You may lose unsaved recording work."
         ),
+        KnownItemSpec(
+            "Blender temp",
+            "Library/Caches/Blender",
+            .safe, .cache,
+            "Blender temp and render cache.",
+            "Rebuilds on next render."
+        ),
     ]
 }
