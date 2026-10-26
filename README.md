@@ -2,6 +2,10 @@
 
 **See what macOS hides.**
 
+![platform](https://img.shields.io/badge/platform-macOS%2014%2B-blue)
+![license](https://img.shields.io/badge/license-MIT-green)
+![status](https://img.shields.io/badge/status-early-orange)
+
 A native Mac app that shows you what's eating your disk, slowing your boot, and watching you — and lets you decide what to do. No scary scanner, no subscription, no cloud, no AI.
 
 Built because the "95GB of System Data" screen in macOS Settings should not be the end of the conversation.
