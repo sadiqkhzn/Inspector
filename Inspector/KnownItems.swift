@@ -885,5 +885,12 @@ KnownItemSpec(
             "Minikube downloaded ISO and preloaded images.",
             "Minikube re-downloads on next 'minikube start'. Running clusters are not affected."
         ),
+        KnownItemSpec(
+            "Colima data",
+            ".colima",
+            .review, .devTool,
+            "Colima virtual machine disk and config.",
+            "You lose the Colima VM state. Only clear if intentional."
+        ),
     ]
 }
