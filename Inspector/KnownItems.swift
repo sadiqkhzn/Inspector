@@ -647,5 +647,12 @@ KnownItemSpec(
             "Codeium Windsurf's Electron HTTP cache.",
             "Rebuilds on next launch."
         ),
+        KnownItemSpec(
+            "Sublime Text cache",
+            "Library/Caches/com.sublimetext.4",
+            .safe, .cache,
+            "Sublime Text 4's local index cache.",
+            "Sublime rebuilds indexes on next project open."
+        ),
     ]
 }
