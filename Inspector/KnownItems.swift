@@ -801,5 +801,12 @@ KnownItemSpec(
             "Telegram's cached media files.",
             "Telegram re-downloads media as you view it."
         ),
+        KnownItemSpec(
+            "WhatsApp cache",
+            "Library/Group Containers/group.net.whatsapp.WhatsApp.shared/Media",
+            .safe, .cache,
+            "WhatsApp downloaded media files.",
+            "WhatsApp re-downloads media when you reopen conversations."
+        ),
     ]
 }
