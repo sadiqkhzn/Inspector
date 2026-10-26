@@ -23,7 +23,13 @@ final class StorageViewModel: ObservableObject {
         isScanning = false
     }
 
-    func reclaimSelected() async {
+    func selectAllSafe() {
+        for i in items.indices where items[i].safety == .safe {
+            items[i].selected = true
+        }
+    }
+
+        func reclaimSelected() async {
         let selected = items.filter { $0.selected }
         guard !selected.isEmpty else { return }
         var reclaimed: Int64 = 0
@@ -102,6 +108,13 @@ private struct Toolbar: View {
             } label: {
                 Label("Rescan", systemImage: "arrow.clockwise")
             }
+
+            Button {
+                vm.selectAllSafe()
+            } label: {
+                Label("Select all safe", systemImage: "checkmark.circle")
+            }
+            .disabled(vm.items.allSatisfy { $0.safety != .safe })
 
             Spacer()
 
