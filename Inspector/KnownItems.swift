@@ -815,5 +815,12 @@ KnownItemSpec(
             "Outlook's local cache of attachments and app assets.",
             "Outlook rebuilds the cache. Mail account state is kept."
         ),
+        KnownItemSpec(
+            "Spark Mail cache",
+            "Library/Group Containers/3L68KQB4HG.com.readdle.smartemail/Caches",
+            .safe, .cache,
+            "Spark Mail's local cache.",
+            "Spark re-downloads as needed."
+        ),
     ]
 }
