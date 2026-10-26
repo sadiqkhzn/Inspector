@@ -619,5 +619,12 @@ KnownItemSpec(
             "Zed editor's local cache for language servers and highlights.",
             "Zed rebuilds the cache on next launch."
         ),
+        KnownItemSpec(
+            "Zed editor data",
+            "Library/Application Support/Zed",
+            .review, .appData,
+            "Zed's workspace state, project settings, and local AI history.",
+            "You lose recent project state and AI conversation history. Settings resync if signed in."
+        ),
     ]
 }
