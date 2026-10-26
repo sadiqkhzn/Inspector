@@ -710,5 +710,12 @@ KnownItemSpec(
             "PhpStorm project index cache.",
             "PhpStorm re-indexes on next project open."
         ),
+        KnownItemSpec(
+            "Rust rustup toolchains",
+            ".rustup/toolchains",
+            .review, .devTool,
+            "Installed Rust toolchains managed by rustup.",
+            "You lose installed Rust toolchains; rustup re-downloads them on demand."
+        ),
     ]
 }
