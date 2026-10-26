@@ -7,6 +7,7 @@ struct InspectorApp: App {
             ContentView()
                 .frame(minWidth: 820, minHeight: 560)
         }
-        .windowResizability(.contentSize)
+        .defaultSize(width: 1080, height: 760)
+        .windowResizability(.contentMinSize)
     }
 }
