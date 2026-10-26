@@ -983,5 +983,12 @@ KnownItemSpec(
             "Final Cut Pro automatic library backups.",
             "You lose automatic backup copies. Current libraries are untouched."
         ),
+        KnownItemSpec(
+            "Logic Pro sound library",
+            "Library/Application Support/Logic/Sampler Instruments",
+            .review, .appData,
+            "Logic Pro sampler instruments (part of sound library).",
+            "You lose instruments; Logic prompts to re-download. ~GB-scale download."
+        ),
     ]
 }
