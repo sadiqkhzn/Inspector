@@ -654,5 +654,12 @@ KnownItemSpec(
             "Sublime Text 4's local index cache.",
             "Sublime rebuilds indexes on next project open."
         ),
+        KnownItemSpec(
+            "Nova editor cache",
+            "Library/Caches/com.panic.Nova",
+            .safe, .cache,
+            "Panic Nova editor's cache.",
+            "Rebuilds on next launch."
+        ),
     ]
 }
