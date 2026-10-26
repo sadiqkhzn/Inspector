@@ -207,13 +207,7 @@ struct ContentView: View {
                 ListHeader(vm: vm, visible: visible, clearFilters: clearFilters)
                 Divider()
                 if visible.isEmpty {
-                    ContentUnavailableView {
-                        Label("No matching items", systemImage: "line.3.horizontal.decrease.circle")
-                    } description: {
-                        Text("Nothing matches the current filters.")
-                    } actions: {
-                        Button("Clear Filters", action: clearFilters)
-                    }
+                    EmptyFilterState(vm: vm, clearFilters: clearFilters)
                 } else {
                     ItemList(vm: vm, items: visible)
                         .opacity(vm.isScanning ? 0.5 : 1)
@@ -375,6 +369,35 @@ struct ContentView: View {
 }
 
 // `.toolbar(removing: .title)` is macOS 15+; the in-content header carries the brand instead.
+private struct EmptyFilterState: View {
+    @ObservedObject var vm: StorageViewModel
+    let clearFilters: () -> Void
+
+    var body: some View {
+        if let category = vm.categoryFilter, !vm.items.contains(where: { $0.category == category }) {
+            ContentUnavailableView {
+                Label("Nothing in \(category.rawValue)", systemImage: "sparkles")
+            } description: {
+                Text("No items in this category on your Mac right now.")
+            }
+        } else if let safety = vm.safetyFilter, !vm.items.contains(where: { $0.safety == safety }) {
+            ContentUnavailableView {
+                Label("Nothing at \(safety.label) tier", systemImage: "sparkles")
+            } description: {
+                Text("No items at this safety level on your Mac right now.")
+            }
+        } else {
+            ContentUnavailableView {
+                Label("No matching items", systemImage: "line.3.horizontal.decrease.circle")
+            } description: {
+                Text("Nothing matches the current filters.")
+            } actions: {
+                Button("Clear Filters", action: clearFilters)
+            }
+        }
+    }
+}
+
 private struct HiddenWindowTitle: ViewModifier {
     func body(content: Content) -> some View {
         if #available(macOS 15.0, *) {
