@@ -262,5 +262,12 @@ KnownItemSpec(
             "Shared cache for all JetBrains IDEs: indexes, local history, log files.",
             "IDEs re-index on next launch (one-time slower start). Settings and plugins stay."
         ),
+        KnownItemSpec(
+            "Android Studio caches",
+            "Library/Caches/Google/AndroidStudio",
+            .safe, .devTool,
+            "Android Studio's build cache and project index.",
+            "Projects re-index on next open. Builds take longer the first time, then normal."
+        ),
     ]
 }
