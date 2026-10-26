@@ -857,5 +857,12 @@ KnownItemSpec(
             "Google Cloud SDK diagnostic logs.",
             "New logs are written as needed."
         ),
+        KnownItemSpec(
+            "AWS CLI cache",
+            ".aws/cli/cache",
+            .safe, .devTool,
+            "AWS CLI's SSO/STS token cache.",
+            "You'll re-authenticate on next CLI call."
+        ),
     ]
 }
