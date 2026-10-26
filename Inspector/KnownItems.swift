@@ -843,5 +843,12 @@ KnownItemSpec(
             "Chrome Dev channel browser cache.",
             "Rebuilds as you browse."
         ),
+        KnownItemSpec(
+            "Chromium cache",
+            "Library/Caches/Chromium",
+            .safe, .cache,
+            "Open-source Chromium browser cache.",
+            "Rebuilds as you browse."
+        ),
     ]
 }
