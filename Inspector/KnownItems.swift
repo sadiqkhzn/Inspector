@@ -962,5 +962,12 @@ KnownItemSpec(
             "DaVinci Resolve's render cache for clips.",
             "Resolve rebuilds render caches on timeline playback."
         ),
+        KnownItemSpec(
+            "ScreenFlow sandbox",
+            "Library/Containers/net.telestream.screenflow10",
+            .review, .appData,
+            "ScreenFlow's sandboxed data including recordings.",
+            "You may lose recent recordings. Export anything you want to keep first."
+        ),
     ]
 }
