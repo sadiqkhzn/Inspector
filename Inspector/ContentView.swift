@@ -143,9 +143,6 @@ struct ContentView: View {
         } detail: {
             detail
         }
-        // The app uses `.windowResizability(.contentSize)`; without a bounded ideal height the
-        // scroll view's full content height becomes the window's size and the layout overflows.
-        .frame(minWidth: 820, idealWidth: 1080, minHeight: 560, idealHeight: 760)
         .modifier(HiddenWindowTitle())
         .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name")
         .toolbar {
@@ -193,6 +190,7 @@ struct ContentView: View {
                 bottomBar
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Palette.contentBackground)
     }
 
@@ -394,6 +392,7 @@ private struct Sidebar: View {
             Divider()
             TierLegend()
         }
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var facetList: some View {
