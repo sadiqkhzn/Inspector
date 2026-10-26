@@ -759,5 +759,12 @@ KnownItemSpec(
             "Downloaded Vagrant VM box images.",
             "Vagrant re-downloads boxes on next 'vagrant up'."
         ),
+        KnownItemSpec(
+            "Parallels snapshots",
+            "Library/Parallels/Parallels Snapshots",
+            .keep, .appData,
+            "Parallels Desktop VM snapshots.",
+            "You lose all VM snapshots. Only clear if intentional."
+        ),
     ]
 }
