@@ -899,5 +899,12 @@ KnownItemSpec(
             "Podman's VM state.",
             "You lose the Podman VM. Only clear if intentional."
         ),
+        KnownItemSpec(
+            "UTM VM data",
+            "Library/Containers/com.utmapp.UTM/Data/Documents",
+            .keep, .appData,
+            "UTM virtual machine images.",
+            "You lose all VMs. Do not clear unless exported elsewhere."
+        ),
     ]
 }
