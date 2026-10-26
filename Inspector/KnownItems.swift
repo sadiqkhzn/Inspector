@@ -32,7 +32,7 @@ enum KnownItems {
     static let catalog: [KnownItemSpec] = [
         KnownItemSpec(
             "Google Chrome cache",
-            "Library/Caches/Google",
+            "Library/Caches/Google/Chrome",
             .safe, .cache,
             "Chrome's browser cache. Pages, images, scripts kept to speed up repeat visits.",
             "Chrome will rebuild it as you browse. Bookmarks, history, and extensions are untouched."
