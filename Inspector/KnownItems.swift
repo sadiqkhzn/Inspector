@@ -346,5 +346,12 @@ KnownItemSpec(
             "SwiftPM's shared cache of fetched package repositories.",
             "Xcode re-fetches packages on next resolve. Projects untouched."
         ),
+        KnownItemSpec(
+            "Composer cache",
+            "Library/Caches/composer",
+            .safe, .devTool,
+            "Composer's cache of downloaded packages.",
+            "composer install re-downloads packages."
+        ),
     ]
 }
