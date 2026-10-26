@@ -6,6 +6,12 @@ final class StorageViewModel: ObservableObject {
     @Published var disk = DiskSnapshot(totalBytes: 0, freeBytes: 0)
     @Published var isScanning = false
     @Published var statusMessage: String?
+    @Published var safetyFilter: SafetyLevel? = nil
+
+    var visibleItems: [CleanupItem] {
+        guard let filter = safetyFilter else { return items }
+        return items.filter { $0.safety == filter }
+    }
 
     var selectedBytes: Int64 {
         items.filter { $0.selected }.reduce(0) { $0 + $1.bytes }
@@ -116,6 +122,15 @@ private struct Toolbar: View {
             }
             .disabled(vm.items.allSatisfy { $0.safety != .safe })
 
+            Picker("Safety", selection: $vm.safetyFilter) {
+                Text("All").tag(SafetyLevel?.none)
+                ForEach(SafetyLevel.allCases, id: \.self) { level in
+                    Text(level.label).tag(SafetyLevel?.some(level))
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(width: 140)
+
             Spacer()
 
             if vm.selectedBytes > 0 {
@@ -153,9 +168,11 @@ private struct ItemList: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach($vm.items) { $item in
-                    ItemRow(item: $item)
-                    Divider()
+                ForEach(vm.visibleItems) { visible in
+                    if let idx = vm.items.firstIndex(of: visible) {
+                        ItemRow(item: $vm.items[idx])
+                        Divider()
+                    }
                 }
             }
         }
