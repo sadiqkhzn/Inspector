@@ -745,5 +745,12 @@ KnownItemSpec(
             "Virtualenvs managed by pipx for CLI tools.",
             "You lose installed CLI tools until re-installed via pipx."
         ),
+        KnownItemSpec(
+            "asdf installs",
+            ".asdf/installs",
+            .keep, .devTool,
+            "Language versions managed by asdf.",
+            "You lose installed language versions until re-built."
+        ),
     ]
 }
