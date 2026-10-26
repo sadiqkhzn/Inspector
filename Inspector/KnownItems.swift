@@ -199,5 +199,12 @@ KnownItemSpec(
             "Firefox's browser cache. Pages and images kept for faster repeat visits.",
             "Firefox will rebuild it as you browse. History, bookmarks, and extensions are untouched."
         ),
+        KnownItemSpec(
+            "Firefox profile data",
+            "Library/Application Support/Firefox",
+            .review, .appData,
+            "Firefox profiles including history, bookmarks, saved passwords, and extensions.",
+            "You lose history, bookmarks, saved passwords, and extensions for every Firefox profile. Only clear if you don't use Firefox."
+        ),
     ]
 }
