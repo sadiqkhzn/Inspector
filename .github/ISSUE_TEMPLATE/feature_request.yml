@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a new catalog entry or capability.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like Inspector to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does this matter?
+      description: What problem does it solve for users?
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Storage view
+        - Boot view
+        - Permissions view
+        - UI / UX
+        - Catalog entry
+        - Other
