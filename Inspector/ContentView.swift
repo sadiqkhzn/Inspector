@@ -208,6 +208,7 @@ struct ContentView: View {
                 Divider()
                 if visible.isEmpty {
                     EmptyFilterState(vm: vm, clearFilters: clearFilters)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ItemList(vm: vm, items: visible)
                         .opacity(vm.isScanning ? 0.5 : 1)
