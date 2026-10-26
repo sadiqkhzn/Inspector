@@ -91,8 +91,8 @@ enum KnownItems {
             "Zoom data",
             "Library/Application Support/zoom.us",
             .review, .appData,
-            "Zoom's logs, preferences, and sign-in tokens.",
-            "You'll have to sign in again on next launch."
+            "Zoom's logs, preferences, and the sign-in token for your account.",
+            "You are signed out and must sign in again, including any 2FA or SSO challenge. If you host meetings, re-registration and permission prompts may be required too."
         ),
         KnownItemSpec(
             "Zoom cache",
@@ -189,8 +189,8 @@ KnownItemSpec(
             "Microsoft Teams data",
             "Library/Containers/com.microsoft.teams2",
             .review, .appData,
-            "Teams cache, logs, and session data.",
-            "You'll sign in again on next launch."
+            "Teams' sandboxed cache, logs, and session tokens tied to your organization sign-in.",
+            "You are signed out and must sign in again through SSO, including any 2FA / conditional-access prompts your workplace enforces. Local chat drafts and queued messages are lost."
         ),
         KnownItemSpec(
             "Firefox cache",
@@ -203,8 +203,8 @@ KnownItemSpec(
             "Firefox profile data",
             "Library/Application Support/Firefox",
             .review, .appData,
-            "Firefox profiles including history, bookmarks, saved passwords, and extensions.",
-            "You lose history, bookmarks, saved passwords, and extensions for every Firefox profile. Only clear if you don't use Firefox."
+            "Every Firefox profile — history, bookmarks, open tabs, installed extensions, and the password store. Saved logins live here and are only recoverable if you also use Firefox Sync.",
+            "You lose every saved password that was not also synced to a Firefox account. You also lose bookmarks, history, open tabs, extensions, and cookies. This locks you out of sites you were signed into."
         ),
         KnownItemSpec(
             "Safari cache",
@@ -238,8 +238,8 @@ KnownItemSpec(
             "Slack cache",
             "Library/Application Support/Slack",
             .review, .appData,
-            "Slack's cached workspace data, including attachments and local search index.",
-            "Slack re-downloads workspace state on next launch. You'll stay signed in."
+            "Slack's full Application Support folder — cached workspace data, local search index, attachments, and session storage.",
+            "Draft messages and unsent threads are lost. Depending on your workspace's auth setup you may be signed out and need to re-authenticate through SSO. Workspace content re-downloads from the server."
         ),
         KnownItemSpec(
             "Discord cache",
