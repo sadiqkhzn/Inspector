@@ -437,5 +437,12 @@ KnownItemSpec(
             "Postman's HTTP response cache and local history.",
             "Postman rebuilds the cache. You stay signed in; collections sync from your account."
         ),
+        KnownItemSpec(
+            "Insomnia cache",
+            "Library/Application Support/Insomnia/Cache",
+            .safe, .cache,
+            "Insomnia's local cache of API responses and assets.",
+            "Rebuilds as you continue making requests."
+        ),
     ]
 }
