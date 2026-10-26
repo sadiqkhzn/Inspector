@@ -913,5 +913,12 @@ KnownItemSpec(
             "VirtualBox virtual machine files.",
             "You lose all VirtualBox VMs. Do not clear unless intentional."
         ),
+        KnownItemSpec(
+            "OneDrive cache",
+            "Library/Caches/OneDrive",
+            .safe, .cache,
+            "Microsoft OneDrive client cache.",
+            "OneDrive rebuilds the cache. Synced files are untouched."
+        ),
     ]
 }
