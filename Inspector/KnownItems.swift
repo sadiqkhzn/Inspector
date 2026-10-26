@@ -871,5 +871,12 @@ KnownItemSpec(
             "Terraform's shared provider plugin cache.",
             "Terraform re-downloads providers on next init."
         ),
+        KnownItemSpec(
+            "kubectl cache",
+            ".kube/cache",
+            .safe, .devTool,
+            "kubectl's HTTP discovery cache for Kubernetes API resources.",
+            "kubectl rebuilds discovery on next command."
+        ),
     ]
 }
