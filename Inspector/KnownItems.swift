@@ -934,5 +934,12 @@ KnownItemSpec(
             "Box Drive client cache.",
             "Box rebuilds the cache. Synced files are untouched."
         ),
+        KnownItemSpec(
+            "Backblaze cache",
+            "Library/Backblaze.bzpkg/bzdata",
+            .review, .appData,
+            "Backblaze backup client's working data.",
+            "May force a re-scan of backup state. Avoid clearing if backup is active."
+        ),
     ]
 }
