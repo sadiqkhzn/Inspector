@@ -423,5 +423,12 @@ KnownItemSpec(
             "Dropbox client's local sync cache.",
             "Dropbox rebuilds the cache as it continues syncing. Files on disk and in the cloud are untouched."
         ),
+        KnownItemSpec(
+            "Microsoft AutoUpdate cache",
+            "Library/Caches/com.microsoft.autoupdate2",
+            .safe, .installerLeftover,
+            "Downloaded update packages left over from Microsoft AutoUpdate.",
+            "Nothing. Office apps continue to update normally."
+        ),
     ]
 }
