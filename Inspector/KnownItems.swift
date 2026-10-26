@@ -822,5 +822,12 @@ KnownItemSpec(
             "Spark Mail's local cache.",
             "Spark re-downloads as needed."
         ),
+        KnownItemSpec(
+            "Chrome Canary cache",
+            "Library/Caches/Google/Chrome Canary",
+            .safe, .cache,
+            "Chrome Canary browser cache.",
+            "Rebuilds as you browse. Profile is untouched."
+        ),
     ]
 }
