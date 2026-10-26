@@ -836,5 +836,12 @@ KnownItemSpec(
             "Chrome Beta browser cache.",
             "Rebuilds as you browse."
         ),
+        KnownItemSpec(
+            "Chrome Dev cache",
+            "Library/Caches/Google/Chrome Dev",
+            .safe, .cache,
+            "Chrome Dev channel browser cache.",
+            "Rebuilds as you browse."
+        ),
     ]
 }
