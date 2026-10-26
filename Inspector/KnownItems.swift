@@ -661,5 +661,12 @@ KnownItemSpec(
             "Panic Nova editor's cache.",
             "Rebuilds on next launch."
         ),
+        KnownItemSpec(
+            "Rubymine cache",
+            "Library/Caches/JetBrains/RubyMine",
+            .safe, .devTool,
+            "RubyMine project index cache.",
+            "RubyMine re-indexes on next project open."
+        ),
     ]
 }
