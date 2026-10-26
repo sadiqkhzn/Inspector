@@ -451,5 +451,12 @@ KnownItemSpec(
             "Container for mediaanalysisd — the background daemon that scans Photos for people, scenes, and text.",
             "The daemon re-scans your library in the background. First few hours after clearing may show higher CPU."
         ),
+        KnownItemSpec(
+            "Wallpaper agent cache",
+            "Library/Containers/com.apple.wallpaper.agent",
+            .review, .cache,
+            "Cache for the macOS wallpaper rotation agent, including downloaded dynamic wallpapers.",
+            "Dynamic wallpapers re-download next time you select them. Static wallpaper setting is kept."
+        ),
     ]
 }
