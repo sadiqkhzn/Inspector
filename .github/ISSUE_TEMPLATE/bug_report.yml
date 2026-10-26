@@ -1,0 +1,28 @@
+name: Bug report
+description: Something isn't working the way it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect?
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: e.g. 26.1 (Tahoe)
+    validations:
+      required: true
+  - type: input
+    id: inspector-version
+    attributes:
+      label: Inspector version
+      placeholder: e.g. 0.1.0 or commit SHA
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps if possible.
