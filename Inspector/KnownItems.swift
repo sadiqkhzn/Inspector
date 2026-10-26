@@ -472,5 +472,12 @@ KnownItemSpec(
             "Safari's sandboxed container holding history, favorites, and extensions.",
             "You lose Safari history, favorites, and extensions. Only clear if you don't use Safari."
         ),
+        KnownItemSpec(
+            "OBS Studio cache",
+            "Library/Application Support/obs-studio/plugin_config",
+            .safe, .cache,
+            "OBS Studio's plugin configuration cache.",
+            "OBS rebuilds plugin configs on next launch. Scene collections and profiles are untouched."
+        ),
     ]
 }
