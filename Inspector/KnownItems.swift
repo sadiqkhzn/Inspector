@@ -493,5 +493,12 @@ KnownItemSpec(
             "iTerm2's quicklook and app cache.",
             "Nothing user-visible. Preferences and profiles are untouched."
         ),
+        KnownItemSpec(
+            "Warp terminal data",
+            "Library/Application Support/dev.warp.Warp-Stable",
+            .review, .appData,
+            "Warp's local AI model cache, shell history mirror, and workflow data.",
+            "You'll stay signed in but may lose recent AI command history."
+        ),
     ]
 }
