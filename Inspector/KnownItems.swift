@@ -640,5 +640,12 @@ KnownItemSpec(
             "Cursor's GPU shader cache.",
             "Rebuilds on next launch."
         ),
+        KnownItemSpec(
+            "Windsurf editor cache",
+            "Library/Application Support/Windsurf/Cache",
+            .safe, .cache,
+            "Codeium Windsurf's Electron HTTP cache.",
+            "Rebuilds on next launch."
+        ),
     ]
 }
