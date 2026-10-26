@@ -500,5 +500,12 @@ KnownItemSpec(
             "Warp's local AI model cache, shell history mirror, and workflow data.",
             "You'll stay signed in but may lose recent AI command history."
         ),
+        KnownItemSpec(
+            "uv cache",
+            "Library/Caches/uv",
+            .safe, .devTool,
+            "Astral uv's download cache for Python packages and interpreters.",
+            "uv re-downloads what it needs on next run. Installed tools are untouched."
+        ),
     ]
 }
