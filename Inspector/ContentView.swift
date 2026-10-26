@@ -192,6 +192,7 @@ struct ContentView: View {
                 .navigationTitle("Inspector")
                 .navigationSubtitle("See what macOS hides.")
                 .toolbar { toolbar }
+                .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Search")
                 .inspector(isPresented: $showInspector) {
                     DetailsPane(
                         item: vm.focusedItem,
@@ -203,7 +204,6 @@ struct ContentView: View {
                     .inspectorColumnWidth(min: 280, ideal: 320, max: 420)
                 }
         }
-        .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Search")
         .quickLookPreview($quickLookURL)
         .confirmationDialog(
             "Move \(vm.selectedItems.count) items to the Trash?",
@@ -277,7 +277,7 @@ struct ContentView: View {
 
     private var filterBar: some View {
         HStack(spacing: 12) {
-            TierPicker(selection: $vm.tierFilter, count: vm.count(for:))
+            TierPicker(selection: $vm.tierFilter, counts: TierPicker.options.map { vm.count(for: $0) })
             Spacer(minLength: 12)
             ViewThatFits(in: .horizontal) {
                 Text(vm.tierFilter == nil ? "Safest first, then largest" : "Largest first")
@@ -500,23 +500,23 @@ private struct LegendDot: View {
 // MARK: - Tier picker
 
 private struct TierPicker: View {
+    static let options: [SafetyLevel?] = [nil, .safe, .review, .keep]
+
     @Binding var selection: SafetyLevel?
-    let count: (SafetyLevel?) -> Int
+    let counts: [Int]
     @Namespace private var namespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let options: [SafetyLevel?] = [nil, .safe, .review, .keep]
-
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(options, id: \.self) { option in
+            ForEach(Array(Self.options.enumerated()), id: \.offset) { index, option in
                 let isOn = option == selection
                 Button {
                     withAnimation(motion(reduceMotion)) { selection = option }
                 } label: {
                     HStack(spacing: 5) {
                         Text(option?.label ?? "All")
-                        Text("\(count(option))")
+                        Text("\(counts[index])")
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                             .monospacedDigit()
