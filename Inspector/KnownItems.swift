@@ -1004,5 +1004,12 @@ KnownItemSpec(
             "Saved Instruments trace documents.",
             "You lose saved performance traces."
         ),
+        KnownItemSpec(
+            "Microsoft AutoUpdate cache var",
+            "Library/Application Support/Microsoft/MERP2.0",
+            .safe, .installerLeftover,
+            "Microsoft Error Reporting Protocol cache.",
+            "Nothing. Only used for after-the-fact crash reports."
+        ),
     ]
 }
