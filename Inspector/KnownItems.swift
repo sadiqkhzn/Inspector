@@ -724,5 +724,12 @@ KnownItemSpec(
             "Node versions installed via nvm.",
             "You lose installed Node versions until re-installed via nvm."
         ),
+        KnownItemSpec(
+            "fnm Node versions",
+            ".local/share/fnm/node-versions",
+            .keep, .devTool,
+            "Node versions installed via fnm.",
+            "You lose installed Node versions until re-installed."
+        ),
     ]
 }
