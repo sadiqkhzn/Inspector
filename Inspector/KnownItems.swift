@@ -766,5 +766,12 @@ KnownItemSpec(
             "Parallels Desktop VM snapshots.",
             "You lose all VM snapshots. Only clear if intentional."
         ),
+        KnownItemSpec(
+            "Opera cache",
+            "Library/Caches/com.operasoftware.Opera",
+            .safe, .cache,
+            "Opera browser cache.",
+            "Opera rebuilds the cache as you browse."
+        ),
     ]
 }
