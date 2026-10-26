@@ -458,5 +458,12 @@ KnownItemSpec(
             "Cache for the macOS wallpaper rotation agent, including downloaded dynamic wallpapers.",
             "Dynamic wallpapers re-download next time you select them. Static wallpaper setting is kept."
         ),
+        KnownItemSpec(
+            "geod cache",
+            "Library/Containers/com.apple.geod",
+            .safe, .cache,
+            "Container for geod — Apple's background location daemon that caches geo data.",
+            "Nothing user-visible. Daemon rebuilds its cache in the background."
+        ),
     ]
 }
