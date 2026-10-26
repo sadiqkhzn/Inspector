@@ -486,5 +486,12 @@ KnownItemSpec(
             "VLC's media metadata and thumbnail cache.",
             "Metadata and thumbnails rebuild as you open files."
         ),
+        KnownItemSpec(
+            "iTerm2 cache",
+            "Library/Caches/com.googlecode.iterm2",
+            .safe, .cache,
+            "iTerm2's quicklook and app cache.",
+            "Nothing user-visible. Preferences and profiles are untouched."
+        ),
     ]
 }
