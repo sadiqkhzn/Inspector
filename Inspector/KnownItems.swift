@@ -549,5 +549,12 @@ KnownItemSpec(
             "SDKMAN's downloaded SDK archives (JDKs, Gradle, Kotlin, etc.) kept after extraction.",
             "Nothing. Installed SDKs are untouched; archives are only needed for reinstall."
         ),
+        KnownItemSpec(
+            "Volta cache",
+            ".volta/tmp",
+            .safe, .devTool,
+            "Volta's temp directory for in-progress downloads and installs.",
+            "Nothing. Installed Node, npm, Yarn versions are kept."
+        ),
     ]
 }
