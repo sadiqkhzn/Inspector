@@ -668,5 +668,12 @@ KnownItemSpec(
             "RubyMine project index cache.",
             "RubyMine re-indexes on next project open."
         ),
+        KnownItemSpec(
+            "PyCharm cache",
+            "Library/Caches/JetBrains/PyCharm",
+            .safe, .devTool,
+            "PyCharm project index cache.",
+            "PyCharm re-indexes on next project open."
+        ),
     ]
 }
