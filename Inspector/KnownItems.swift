@@ -969,5 +969,12 @@ KnownItemSpec(
             "ScreenFlow's sandboxed data including recordings.",
             "You may lose recent recordings. Export anything you want to keep first."
         ),
+        KnownItemSpec(
+            "QuickTime autosave",
+            "Library/Containers/com.apple.QuickTimePlayerX",
+            .review, .appData,
+            "QuickTime Player X's container, including autosaved recordings.",
+            "You lose unsaved QuickTime recordings."
+        ),
     ]
 }
