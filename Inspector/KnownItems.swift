@@ -850,5 +850,12 @@ KnownItemSpec(
             "Open-source Chromium browser cache.",
             "Rebuilds as you browse."
         ),
+        KnownItemSpec(
+            "gcloud SDK cache",
+            ".config/gcloud/logs",
+            .safe, .devTool,
+            "Google Cloud SDK diagnostic logs.",
+            "New logs are written as needed."
+        ),
     ]
 }
