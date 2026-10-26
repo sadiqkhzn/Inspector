@@ -689,5 +689,12 @@ KnownItemSpec(
             "WebStorm project index cache.",
             "WebStorm re-indexes on next project open."
         ),
+        KnownItemSpec(
+            "GoLand cache",
+            "Library/Caches/JetBrains/GoLand",
+            .safe, .devTool,
+            "GoLand project index cache.",
+            "GoLand re-indexes on next project open."
+        ),
     ]
 }
