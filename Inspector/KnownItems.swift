@@ -290,5 +290,12 @@ KnownItemSpec(
             "npm's cache of downloaded packages and tarballs.",
             "npm re-downloads packages on next install. Nothing else changes."
         ),
+        KnownItemSpec(
+            "Yarn cache",
+            "Library/Caches/Yarn",
+            .safe, .devTool,
+            "Yarn's cache of downloaded packages.",
+            "Yarn re-downloads packages on next install."
+        ),
     ]
 }
