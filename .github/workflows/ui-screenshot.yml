@@ -17,10 +17,10 @@ jobs:
       - name: Build
         run: |
           xcodebuild -version
-          set -o pipefail
           xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|warning: .*ContentView|warning: .*Owners|warning: .*Scanner|BUILD" || true
-          test -d build/Build/Products/Debug/Inspector.app
+            CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || status=$?
+          grep -E "error:|warning: .*(ContentView|Owners|Scanner|Models)|BUILD" build.log || true
+          exit ${status:-0}
       - name: Launch and capture
         run: |
           shot() {

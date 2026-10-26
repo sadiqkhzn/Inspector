@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import QuickLook
 
 @MainActor
 final class StorageViewModel: ObservableObject {
