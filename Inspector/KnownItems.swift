@@ -360,5 +360,12 @@ KnownItemSpec(
             "RubyGems' cache of downloaded gem files.",
             "gem install re-downloads gems. Installed gems are untouched."
         ),
+        KnownItemSpec(
+            "QuickLook thumbnails",
+            "Library/Caches/com.apple.quicklook.thumbnailcache",
+            .safe, .cache,
+            "macOS QuickLook preview thumbnails.",
+            "Thumbnails regenerate on demand when you preview files."
+        ),
     ]
 }
