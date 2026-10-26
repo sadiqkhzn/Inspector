@@ -353,5 +353,12 @@ KnownItemSpec(
             "Composer's cache of downloaded packages.",
             "composer install re-downloads packages."
         ),
+        KnownItemSpec(
+            "RubyGems cache",
+            ".gem/cache",
+            .safe, .devTool,
+            "RubyGems' cache of downloaded gem files.",
+            "gem install re-downloads gems. Installed gems are untouched."
+        ),
     ]
 }
