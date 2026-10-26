@@ -1018,5 +1018,12 @@ KnownItemSpec(
             "Element (Matrix client) local cache.",
             "Element re-downloads as you scroll conversations."
         ),
+        KnownItemSpec(
+            "Zulip cache",
+            "Library/Application Support/Zulip/Cache",
+            .safe, .cache,
+            "Zulip desktop app Electron cache.",
+            "Rebuilds on next launch."
+        ),
     ]
 }
