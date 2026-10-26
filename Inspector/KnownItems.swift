@@ -234,5 +234,12 @@ KnownItemSpec(
             "Arc's browser cache.",
             "Arc will rebuild it as you browse."
         ),
+        KnownItemSpec(
+            "Slack cache",
+            "Library/Application Support/Slack",
+            .review, .appData,
+            "Slack's cached workspace data, including attachments and local search index.",
+            "Slack re-downloads workspace state on next launch. You'll stay signed in."
+        ),
     ]
 }
