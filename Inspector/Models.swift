@@ -30,15 +30,19 @@ enum ScanCategory: String {
 }
 
 struct CleanupItem: Identifiable, Hashable {
-    let id = UUID()
     let name: String
+    let url: URL
     let path: String
     let bytes: Int64
     let safety: SafetyLevel
     let category: ScanCategory
     let whatItIs: String
     let whatHappensIfRemoved: String
+    let owner: ItemOwner
+    let lastModified: Date?
     var selected: Bool = false
+
+    var id: String { url.path }
 
     var formattedSize: String {
         ByteFormatter.string(bytes)

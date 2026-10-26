@@ -1,123 +1,171 @@
 import SwiftUI
 import AppKit
+import QuickLook
 
 @MainActor
 final class StorageViewModel: ObservableObject {
+    struct TrashReceipt: Identifiable {
+        struct Moved {
+            let item: CleanupItem
+            let trashedURL: URL?
+        }
+
+        let id = UUID()
+        let moved: [Moved]
+        let failed: [String]
+
+        var bytes: Int64 { moved.reduce(0) { $0 + $1.item.bytes } }
+        var canUndo: Bool { moved.contains { $0.trashedURL != nil } }
+    }
+
     @Published var items: [CleanupItem] = []
-    @Published var disk = DiskSnapshot(totalBytes: 0, freeBytes: 0)
-    @Published var isScanning = false
-    @Published var statusMessage: String?
-    @Published var safetyFilter: SafetyLevel? = nil
-    @Published var categoryFilter: ScanCategory? = nil
+    @Published private(set) var disk = DiskSnapshot(totalBytes: 0, freeBytes: 0)
+    @Published private(set) var isScanning = false
+    @Published private(set) var hasScanned = false
+    @Published var tierFilter: SafetyLevel? = nil
     @Published var searchText: String = ""
+    @Published var focusedID: CleanupItem.ID?
+    @Published var receipt: TrashReceipt?
+    @Published var errorMessage: String?
 
     var visibleItems: [CleanupItem] {
-        items.filter { item in
-            (safetyFilter == nil || item.safety == safetyFilter!) &&
-            (categoryFilter == nil || item.category == categoryFilter!) &&
-            (searchText.isEmpty || item.name.localizedCaseInsensitiveContains(searchText))
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        return items.filter { item in
+            (tierFilter == nil || item.safety == tierFilter) &&
+            (query.isEmpty
+                || item.name.localizedCaseInsensitiveContains(query)
+                || item.owner.name.localizedCaseInsensitiveContains(query)
+                || item.path.localizedCaseInsensitiveContains(query))
         }
     }
 
-    var selectedBytes: Int64 {
-        items.filter { $0.selected }.reduce(0) { $0 + $1.bytes }
-    }
+    var selectedItems: [CleanupItem] { items.filter(\.selected) }
+    var selectedBytes: Int64 { total(selectedItems) }
+    var foundBytes: Int64 { total(items) }
+    var focusedItem: CleanupItem? { items.first { $0.id == focusedID } }
 
-    var formattedSelected: String {
-        ByteFormatter.string(selectedBytes)
-    }
+    func bytes(for tier: SafetyLevel) -> Int64 { total(items.filter { $0.safety == tier }) }
+    func count(for tier: SafetyLevel?) -> Int { items.filter { tier == nil || $0.safety == tier }.count }
 
     func refresh() async {
         isScanning = true
-        statusMessage = nil
         disk = Scanner.diskSnapshot()
-        items = await Scanner.scan()
+        let previouslySelected = Set(selectedItems.map(\.id))
+        let scanned = await Scanner.scan()
+        items = scanned.map { item in
+            var item = item
+            item.selected = previouslySelected.contains(item.id)
+            return item
+        }
+        if focusedItem == nil { focusedID = visibleItems.first?.id }
         isScanning = false
+        hasScanned = true
+    }
+
+    func toggle(_ id: CleanupItem.ID) {
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        items[index].selected.toggle()
     }
 
     func selectAllSafe() {
-        for i in items.indices where items[i].safety == .safe {
+        let visible = Set(visibleItems.map(\.id))
+        for i in items.indices where items[i].safety == .safe && visible.contains(items[i].id) {
             items[i].selected = true
         }
     }
 
-    func reclaimSelected() async {
-        let selected = items.filter { $0.selected }
-        guard !selected.isEmpty else { return }
-        var reclaimed: Int64 = 0
+    func clearSelection() {
+        for i in items.indices { items[i].selected = false }
+    }
+
+    func moveFocus(by offset: Int) {
+        let ids = visibleItems.map(\.id)
+        guard !ids.isEmpty else { return }
+        guard let current = focusedID, let index = ids.firstIndex(of: current) else {
+            focusedID = ids.first
+            return
+        }
+        focusedID = ids[min(max(index + offset, 0), ids.count - 1)]
+    }
+
+    func moveSelectedToTrash() {
+        let chosen = selectedItems
+        guard !chosen.isEmpty else { return }
+        var moved: [TrashReceipt.Moved] = []
         var failed: [String] = []
-        for item in selected {
+        for item in chosen {
             do {
-                try Scanner.remove(item)
-                reclaimed += item.bytes
+                let trashedURL = try Scanner.moveToTrash(item)
+                moved.append(.init(item: item, trashedURL: trashedURL))
             } catch {
                 failed.append(item.name)
             }
         }
-        await refresh()
-        let freed = ByteFormatter.string(reclaimed)
-        if failed.isEmpty {
-            statusMessage = "Freed \(freed)."
-        } else {
-            statusMessage = "Freed \(freed). Could not remove: \(failed.joined(separator: ", "))."
+
+        let movedIDs = Set(moved.map(\.item.id))
+        if let focusedID, movedIDs.contains(focusedID) {
+            let ids = visibleItems.map(\.id)
+            let start = ids.firstIndex(of: focusedID) ?? 0
+            self.focusedID = (Array(ids[start...]) + ids[..<start].reversed()).first { !movedIDs.contains($0) }
         }
+        items.removeAll { movedIDs.contains($0.id) }
+        disk = Scanner.diskSnapshot()
+        receipt = TrashReceipt(moved: moved, failed: failed)
+    }
+
+    func undoLastTrash() {
+        guard let receipt else { return }
+        var restored: [CleanupItem] = []
+        var failed: [String] = []
+        for entry in receipt.moved {
+            guard let trashedURL = entry.trashedURL else {
+                failed.append(entry.item.name)
+                continue
+            }
+            do {
+                try Scanner.restore(entry.item, from: trashedURL)
+                restored.append(entry.item)
+            } catch {
+                failed.append(entry.item.name)
+            }
+        }
+        items = Scanner.sorted(items + restored)
+        focusedID = restored.first?.id ?? focusedID
+        disk = Scanner.diskSnapshot()
+        self.receipt = nil
+        if !failed.isEmpty {
+            errorMessage = "Couldn't put back \(failed.joined(separator: ", ")). They're still in the Trash."
+        }
+    }
+
+    private func total(_ items: [CleanupItem]) -> Int64 {
+        items.reduce(0) { $0 + $1.bytes }
     }
 }
 
 // MARK: - Design tokens
 
-private enum Facet: Hashable {
-    case safety(SafetyLevel?)
-    case category(ScanCategory?)
-}
-
-private let allCategories: [ScanCategory] = [.cache, .installerLeftover, .appData, .devTool]
-
-private enum Palette {
-    static let safe = Color(nsColor: .systemGreen)
-    static let review = Color(nsColor: .systemOrange)
-    // Keep is deliberately neutral: it is "shown for visibility", not a threat.
-    static let keep = Color(nsColor: .systemGray)
-    static let used = Color.primary.opacity(0.32)
-    static let track = Color.primary.opacity(0.08)
-    static let contentBackground = Color(nsColor: .textBackgroundColor)
-}
-
 private extension SafetyLevel {
     var tint: Color {
         switch self {
-        case .safe:   return Palette.safe
-        case .review: return Palette.review
-        case .keep:   return Palette.keep
+        case .safe:   return Color(nsColor: .systemIndigo)
+        case .review: return Color(nsColor: .systemOrange)
+        // Keep is deliberately neutral: it's shown for visibility, not as a threat.
+        case .keep:   return Color(nsColor: .systemGray)
         }
     }
 
-    var symbol: String {
+    var note: String {
         switch self {
-        case .safe:   return "checkmark"
-        case .review: return "eye"
-        case .keep:   return "lock.fill"
-        }
-    }
-
-    var shortExplanation: String {
-        switch self {
-        case .safe:   return "Rebuilt automatically when needed."
-        case .review: return "Holds real state. Know the trade-off."
-        case .keep:   return "Your data. Shown, not suggested."
+        case .safe:   return "Rebuilt automatically when needed. Removing it costs nothing meaningful."
+        case .review: return "Holds real state. Usually fine to remove, but know the trade-off."
+        case .keep:   return "Your data or working state. Shown so you can see it, not suggested."
         }
     }
 }
 
-private extension ScanCategory {
-    var symbol: String {
-        switch self {
-        case .cache:             return "clock.arrow.circlepath"
-        case .installerLeftover: return "shippingbox"
-        case .appData:           return "square.stack.3d.up"
-        case .devTool:           return "hammer"
-        }
-    }
+private func motion(_ reduceMotion: Bool, _ animation: Animation = .smooth(duration: 0.22)) -> Animation? {
+    reduceMotion ? nil : animation
 }
 
 private func splitSize(_ formatted: String) -> (value: String, unit: String) {
@@ -125,511 +173,312 @@ private func splitSize(_ formatted: String) -> (value: String, unit: String) {
     return (String(formatted[..<i]), String(formatted[formatted.index(after: i)...]))
 }
 
+private func reveal(_ item: CleanupItem) {
+    NSWorkspace.shared.activateFileViewerSelecting([item.url])
+}
+
 // MARK: - Root
 
 struct ContentView: View {
     @StateObject private var vm = StorageViewModel()
-    @State private var hasScanned = false
-    @State private var isConfirmingReclaim = false
-    @State private var isReclaiming = false
-    @State private var showResult = false
-    @State private var highlightFree = false
-    @State private var resultToken = 0
+    @State private var showInspector = true
+    @State private var confirmTrash = false
+    @State private var quickLookURL: URL?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        NavigationSplitView {
-            Sidebar(vm: vm)
-                .navigationSplitViewColumnWidth(min: 200, ideal: 224, max: 300)
-        } detail: {
-            detail
-                .navigationSplitViewColumnWidth(min: 480, ideal: 840)
-        }
-        .modifier(HiddenWindowTitle())
-        .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await vm.refresh() }
-                } label: {
-                    if vm.isScanning {
-                        ProgressView().controlSize(.small).frame(width: 16, height: 16)
-                    } else {
-                        Label("Rescan", systemImage: "arrow.clockwise")
-                    }
+        NavigationStack {
+            content
+                .navigationTitle("Inspector")
+                .navigationSubtitle("See what macOS hides.")
+                .toolbar { toolbar }
+                .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Search")
+                .inspector(isPresented: $showInspector) {
+                    DetailsPane(
+                        item: vm.focusedItem,
+                        foundBytes: vm.foundBytes,
+                        onToggle: { if let id = vm.focusedID { withAnimation(motion(reduceMotion)) { vm.toggle(id) } } },
+                        onReveal: { if let item = vm.focusedItem { reveal(item) } },
+                        onQuickLook: { quickLookURL = vm.focusedItem?.url }
+                    )
+                    .inspectorColumnWidth(min: 280, ideal: 320, max: 420)
                 }
-                .help("Rescan (⌘R)")
-                .keyboardShortcut("r")
-                .disabled(vm.isScanning || isReclaiming)
-            }
         }
+        .quickLookPreview($quickLookURL)
         .confirmationDialog(
-            "Reclaim \(vm.formattedSelected)?",
-            isPresented: $isConfirmingReclaim,
+            "Move \(vm.selectedItems.count) items to the Trash?",
+            isPresented: $confirmTrash,
             titleVisibility: .visible
         ) {
-            Button("Delete \(selectedItems.count) \(selectedItems.count == 1 ? "Item" : "Items")", role: .destructive) {
-                performReclaim()
-            }
+            Button("Move to Trash") { trash() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text(confirmationMessage)
+            Text("Your selection includes items marked Review or Keep. You can put everything back with Undo, or from the Trash.")
         }
-        .task {
-            await vm.refresh()
-            hasScanned = true
+        .alert(
+            "Something didn't work",
+            isPresented: Binding(get: { vm.errorMessage != nil }, set: { if !$0 { vm.errorMessage = nil } })
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(vm.errorMessage ?? "")
         }
+        .task { await vm.refresh() }
     }
 
-    private var detail: some View {
-        VStack(spacing: 0) {
-            Header(disk: vm.disk, selectedBytes: vm.selectedBytes, highlightFree: highlightFree)
-            Divider()
-            mainContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .layoutPriority(-1)
-            if showResult || (hasScanned && !vm.items.isEmpty) {
-                bottomBar
+    @ToolbarContentBuilder
+    private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                Task { await vm.refresh() }
+            } label: {
+                if vm.isScanning {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Label("Rescan", systemImage: "arrow.clockwise")
+                }
             }
+            .help("Rescan (⌘R)")
+            .keyboardShortcut("r")
+            .disabled(vm.isScanning)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Palette.contentBackground)
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                withAnimation(motion(reduceMotion)) { showInspector.toggle() }
+            } label: {
+                Label("Details", systemImage: "sidebar.right")
+            }
+            .help("Show or hide details (⌥⌘I)")
+            .keyboardShortcut("i", modifiers: [.command, .option])
+        }
     }
 
     @ViewBuilder
-    private var mainContent: some View {
-        if !hasScanned || (vm.isScanning && vm.items.isEmpty) {
-            ScanningState()
-        } else if vm.items.isEmpty {
-            EmptyState { Task { await vm.refresh() } }
-        } else {
-            let visible = vm.visibleItems
-            VStack(spacing: 0) {
-                ListHeader(vm: vm, visible: visible, clearFilters: clearFilters)
-                Divider()
-                if visible.isEmpty {
-                    EmptyFilterState(vm: vm, clearFilters: clearFilters)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ItemList(vm: vm, items: visible)
-                        .opacity(vm.isScanning ? 0.5 : 1)
-                        .allowsHitTesting(!vm.isScanning)
-                }
-            }
-        }
-    }
-
-    // MARK: Bottom bar
-
-    private var bottomBar: some View {
+    private var content: some View {
         VStack(spacing: 0) {
-            Divider()
-            Group {
-                if showResult, let message = vm.statusMessage {
-                    ReclaimResult(message: message, freeNow: vm.disk.formattedFree, onDismiss: dismissResult)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                } else {
-                    actionBar
-                        .transition(.opacity)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-        }
-        .background(.bar)
-    }
-
-    private var actionBar: some View {
-        HStack(spacing: 12) {
-            if selectedItems.isEmpty {
-                ViewThatFits(in: .horizontal) {
-                    Text("Nothing selected. Items marked Safe are a good place to start.")
-                    Text("Nothing selected.")
-                }
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+            if !vm.hasScanned {
+                ScanningState()
+            } else if vm.items.isEmpty {
+                EmptyState { Task { await vm.refresh() } }
             } else {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 8) {
-                        Text("\(selectedItems.count) selected")
-                            .font(.callout.weight(.semibold))
-                            .monospacedDigit()
-                        Button("Clear", action: deselectAll)
-                            .buttonStyle(.link)
-                            .font(.callout)
-                    }
-                    if let caution = cautionText {
-                        Label(caution, systemImage: "eye")
-                            .font(.caption)
-                            .foregroundStyle(Palette.review)
-                            .lineLimit(2)
-                    }
+                OverviewHeader(vm: vm)
+                filterBar
+                if vm.visibleItems.isEmpty {
+                    noMatches
+                } else {
+                    ItemList(vm: vm, onQuickLook: { quickLookURL = $0.url })
                 }
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color(nsColor: .textBackgroundColor))
+        .overlay(alignment: .bottom) { floatingBar }
+    }
 
+    private var filterBar: some View {
+        HStack(spacing: 12) {
+            TierPicker(selection: $vm.tierFilter, counts: TierPicker.options.map { vm.count(for: $0) })
             Spacer(minLength: 12)
-
+            ViewThatFits(in: .horizontal) {
+                Text(vm.tierFilter == nil ? "Safest first, then largest" : "Largest first")
+                Text("")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
             Button("Select All Safe") {
-                withAnimation(.easeOut(duration: 0.15)) { vm.selectAllSafe() }
+                withAnimation(motion(reduceMotion)) { vm.selectAllSafe() }
             }
-            .controlSize(.large)
-            .fixedSize()
+            .buttonStyle(.borderless)
             .keyboardShortcut("a", modifiers: [.command, .option])
-            .disabled(!vm.items.contains { $0.safety == .safe && !$0.selected })
-
-            if vm.selectedBytes > 0 {
-                Button {
-                    isConfirmingReclaim = true
-                } label: {
-                    HStack(spacing: 6) {
-                        if isReclaiming {
-                            ProgressView().controlSize(.small)
-                        } else {
-                            Image(systemName: "trash")
-                        }
-                        Text("Reclaim \(vm.formattedSelected)")
-                            .monospacedDigit()
-                    }
-                    .padding(.horizontal, 4)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .fixedSize()
-                .keyboardShortcut(.delete, modifiers: .command)
-                .disabled(isReclaiming || vm.isScanning)
-                .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .trailing)))
-            }
+            .disabled(!vm.visibleItems.contains { $0.safety == .safe && !$0.selected })
         }
-        .animation(.easeOut(duration: 0.18), value: vm.selectedBytes > 0)
+        .padding(.leading, 26)
+        .padding(.trailing, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 6)
     }
 
-    // MARK: Derived state
-
-    private var selectedItems: [CleanupItem] {
-        vm.items.filter(\.selected)
-    }
-
-    private var cautionText: String? {
-        let review = selectedItems.filter { $0.safety == .review }.count
-        let keep = selectedItems.filter { $0.safety == .keep }.count
-        var parts: [String] = []
-        if review > 0 { parts.append("\(review) Review \(review == 1 ? "item" : "items")") }
-        if keep > 0 { parts.append("\(keep) Keep \(keep == 1 ? "item" : "items")") }
-        guard !parts.isEmpty else { return nil }
-        return "Includes " + parts.joined(separator: " and ")
-    }
-
-    private var confirmationMessage: String {
-        let count = selectedItems.count
-        var message = "\(count) \(count == 1 ? "item" : "items") will be permanently deleted. They are not moved to the Trash."
-        if cautionText != nil {
-            message += " Your selection includes items marked Review or Keep."
-        }
-        return message
-    }
-
-    // MARK: Actions
-
-    @MainActor
-    private func performReclaim() {
-        isReclaiming = true
-        resultToken += 1
-        let token = resultToken
-        Task { @MainActor in
-            await vm.reclaimSelected()
-            isReclaiming = false
-            guard let message = vm.statusMessage else { return }
-            withAnimation(.easeOut(duration: 0.22)) {
-                showResult = true
-                highlightFree = true
-            }
-            try? await Task.sleep(for: .seconds(1.6))
-            withAnimation(.easeOut(duration: 0.25)) { highlightFree = false }
-
-            guard !message.contains("Could not remove") else { return }
-            try? await Task.sleep(for: .seconds(6))
-            if token == resultToken, showResult { dismissResult() }
-        }
-    }
-
-    @MainActor
-    private func dismissResult() {
-        withAnimation(.easeOut(duration: 0.2)) { showResult = false }
-        vm.statusMessage = nil
-    }
-
-    @MainActor
-    private func deselectAll() {
-        withAnimation(.easeOut(duration: 0.15)) {
-            for i in vm.items.indices { vm.items[i].selected = false }
-        }
-    }
-
-    @MainActor
-    private func clearFilters() {
-        vm.safetyFilter = nil
-        vm.categoryFilter = nil
-        vm.searchText = ""
-    }
-}
-
-// `.toolbar(removing: .title)` is macOS 15+; the in-content header carries the brand instead.
-private struct EmptyFilterState: View {
-    @ObservedObject var vm: StorageViewModel
-    let clearFilters: () -> Void
-
-    var body: some View {
-        if let category = vm.categoryFilter, !vm.items.contains(where: { $0.category == category }) {
+    @ViewBuilder
+    private var noMatches: some View {
+        if !vm.searchText.isEmpty {
+            ContentUnavailableView.search(text: vm.searchText)
+        } else {
             ContentUnavailableView {
-                Label("Nothing in \(category.rawValue)", systemImage: "sparkles")
-            } description: {
-                Text("No items in this category on your Mac right now.")
-            }
-        } else if let safety = vm.safetyFilter, !vm.items.contains(where: { $0.safety == safety }) {
-            ContentUnavailableView {
-                Label("Nothing at \(safety.label) tier", systemImage: "sparkles")
+                Label("Nothing marked \(vm.tierFilter?.label ?? "")", systemImage: "sparkles")
             } description: {
                 Text("No items at this safety level on your Mac right now.")
             }
-        } else {
-            ContentUnavailableView {
-                Label("No matching items", systemImage: "line.3.horizontal.decrease.circle")
-            } description: {
-                Text("Nothing matches the current filters.")
-            } actions: {
-                Button("Clear Filters", action: clearFilters)
-            }
         }
     }
-}
 
-private struct HiddenWindowTitle: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(macOS 15.0, *) {
-            content
-                .navigationTitle("Inspector")
-                .toolbar(removing: .title)
-        } else {
-            content.navigationTitle("Inspector")
-        }
-    }
-}
+    // MARK: Floating bar
 
-// MARK: - Sidebar
-
-private struct Sidebar: View {
-    @ObservedObject var vm: StorageViewModel
-
-    var body: some View {
-        VStack(spacing: 0) {
-            facetList
-                .layoutPriority(-1)
-            Divider()
-            TierLegend()
-        }
-        .frame(maxHeight: .infinity, alignment: .top)
+    private var barState: Int {
+        if vm.receipt != nil { return 2 }
+        return vm.selectedItems.isEmpty ? 0 : 1
     }
 
-    private var facetList: some View {
-        List(selection: selection) {
-            Section("Safety") {
-                row(.safety(nil), title: "All Items", symbol: "tray.full", tint: .secondary, items: vm.items)
-                ForEach(SafetyLevel.allCases, id: \.self) { level in
-                    row(.safety(level), title: level.label, symbol: level.symbol, tint: level.tint,
-                        items: vm.items.filter { $0.safety == level })
-                        .help(level.shortExplanation)
-                }
-            }
-            Section("Category") {
-                row(.category(nil), title: "All Categories", symbol: "square.grid.2x2", tint: .secondary, items: vm.items)
-                ForEach(allCategories, id: \.self) { category in
-                    row(.category(category), title: category.rawValue, symbol: category.symbol, tint: .secondary,
-                        items: vm.items.filter { $0.category == category })
-                }
-            }
-        }
-        .listStyle(.sidebar)
-    }
-
-    private func row(_ facet: Facet, title: String, symbol: String, tint: Color, items: [CleanupItem]) -> some View {
-        Label {
-            Text(title)
-        } icon: {
-            Image(systemName: symbol).foregroundStyle(tint)
-        }
-        .badge(items.count)
-        .tag(facet)
-    }
-
-    // The sidebar shows one active row per section, so a multi-selection List is used as
-    // two independent radio groups: each click replaces only the facet in its own section.
-    private var selection: Binding<Set<Facet>> {
-        Binding(
-            get: { [.safety(vm.safetyFilter), .category(vm.categoryFilter)] },
-            set: { newValue in
-                let current: Set<Facet> = [.safety(vm.safetyFilter), .category(vm.categoryFilter)]
-                let added = newValue.subtracting(current)
-                guard added.count == 1, let facet = added.first else {
-                    DispatchQueue.main.async { vm.objectWillChange.send() }
-                    return
-                }
-                switch facet {
-                case .safety(let level):       vm.safetyFilter = level
-                case .category(let category):  vm.categoryFilter = category
-                }
-            }
-        )
-    }
-}
-
-private struct TierLegend: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            ForEach(SafetyLevel.allCases, id: \.self) { level in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Image(systemName: level.symbol)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(level.tint)
-                        .frame(width: 14)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(level.label).font(.caption.weight(.semibold))
-                        Text(level.shortExplanation)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
+    private var floatingBar: some View {
+        ZStack {
+            if let receipt = vm.receipt {
+                TrashToast(
+                    receipt: receipt,
+                    onUndo: { withAnimation(motion(reduceMotion)) { vm.undoLastTrash() } },
+                    onDismiss: { withAnimation(motion(reduceMotion)) { vm.receipt = nil } }
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            } else if !vm.selectedItems.isEmpty {
+                SelectionBar(
+                    count: vm.selectedItems.count,
+                    bytes: vm.selectedBytes,
+                    needsReview: vm.selectedItems.filter { $0.safety != .safe }.count,
+                    onClear: { withAnimation(motion(reduceMotion)) { vm.clearSelection() } },
+                    onTrash: {
+                        if vm.selectedItems.contains(where: { $0.safety != .safe }) {
+                            confirmTrash = true
+                        } else {
+                            trash()
+                        }
                     }
-                }
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.bottom, 18)
+        .padding(.horizontal, 20)
+        .animation(motion(reduceMotion), value: barState)
+    }
+
+    private func trash() {
+        withAnimation(motion(reduceMotion)) { vm.moveSelectedToTrash() }
     }
 }
 
-// MARK: - Header
+// MARK: - Overview
 
-private struct Header: View {
-    let disk: DiskSnapshot
-    let selectedBytes: Int64
-    let highlightFree: Bool
-
-    private var hasDisk: Bool { disk.totalBytes > 0 }
+private struct OverviewHeader: View {
+    @ObservedObject var vm: StorageViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        let reclaimable = splitSize(ByteFormatter.string(vm.bytes(for: .safe)))
+
+        VStack(alignment: .leading, spacing: 12) {
             ViewThatFits(in: .horizontal) {
-                HStack(alignment: .center, spacing: 12) {
-                    brand
+                HStack(alignment: .lastTextBaseline, spacing: 20) {
+                    headline(reclaimable, inline: true)
                     Spacer(minLength: 24)
                     diskSummary(alignment: .trailing)
                 }
-                VStack(alignment: .leading, spacing: 12) {
-                    brand
+                HStack(alignment: .lastTextBaseline, spacing: 20) {
+                    headline(reclaimable, inline: false)
+                    Spacer(minLength: 24)
+                    diskSummary(alignment: .trailing)
+                }
+                VStack(alignment: .leading, spacing: 10) {
+                    headline(reclaimable, inline: false)
                     diskSummary(alignment: .leading)
                 }
             }
 
-            CapacityBar(disk: disk, selectedBytes: selectedBytes)
+            CapacityBar(
+                segments: SafetyLevel.allCases.map { (color: $0.tint, bytes: vm.bytes(for: $0)) },
+                total: vm.foundBytes,
+                selected: vm.selectedBytes
+            )
+            .animation(motion(reduceMotion, .smooth(duration: 0.25)), value: vm.selectedBytes)
+            .animation(motion(reduceMotion, .smooth(duration: 0.25)), value: vm.foundBytes)
+
+            ViewThatFits(in: .horizontal) {
+                legend(withSizes: true)
+                legend(withSizes: false)
+            }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 28)
         .padding(.top, 18)
-        .padding(.bottom, 16)
-        .animation(.easeOut(duration: 0.25), value: disk.freeBytes)
     }
 
-    private var brand: some View {
-        HStack(spacing: 12) {
-            BrandMark()
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Inspector")
-                    .font(.system(size: 20, weight: .semibold))
-                Text("See what macOS hides.")
-                    .font(.callout)
+    private func headline(_ reclaimable: (value: String, unit: String), inline: Bool) -> some View {
+        let caption = Text("safe to remove, of \(ByteFormatter.string(vm.foundBytes)) found")
+            .foregroundStyle(.secondary)
+
+        return VStack(alignment: .leading, spacing: 2) {
+            Text("Reclaimable")
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(reclaimable.value)
+                    .font(.system(size: 44, weight: .semibold))
+                    .tracking(-1)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .animation(motion(reduceMotion), value: reclaimable.value)
+                Text(reclaimable.unit)
+                    .font(.title3.weight(.medium))
                     .foregroundStyle(.secondary)
+                if inline {
+                    caption.padding(.leading, 8)
+                }
             }
-            .fixedSize()
+            if !inline {
+                caption
+            }
         }
+        .fixedSize()
     }
 
     private func diskSummary(alignment: HorizontalAlignment) -> some View {
-        let free = splitSize(disk.formattedFree)
-        return VStack(alignment: alignment, spacing: 2) {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(hasDisk ? free.value : "—")
-                    .font(.system(size: 26, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .foregroundStyle(highlightFree ? Palette.safe : Color.primary)
-                Text(hasDisk ? "\(free.unit) free" : "free")
-                    .font(.callout.weight(.medium))
+        VStack(alignment: alignment, spacing: 2) {
+            Text(vm.disk.totalBytes > 0 ? "\(vm.disk.formattedFree) free" : "Reading disk…")
+                .fontWeight(.semibold)
+                .monospacedDigit()
+            if vm.disk.totalBytes > 0 {
+                Text("of \(vm.disk.formattedTotal)")
                     .foregroundStyle(.secondary)
             }
-            Text(hasDisk ? "\(disk.formattedUsed) of \(disk.formattedTotal) used" : "Reading disk…")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
+        }
+        .fixedSize()
+    }
+
+    private func legend(withSizes: Bool) -> some View {
+        HStack(spacing: 18) {
+            LegendDot(color: .accentColor, text: withSizes ? "Selected \(ByteFormatter.string(vm.selectedBytes))" : "Selected")
+            ForEach(SafetyLevel.allCases, id: \.self) { level in
+                LegendDot(color: level.tint.opacity(0.55),
+                          text: withSizes ? "\(level.label) \(ByteFormatter.string(vm.bytes(for: level)))" : level.label)
+            }
         }
         .fixedSize()
     }
 }
 
-private struct BrandMark: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(LinearGradient(
-                    colors: [Color.accentColor, Color.accentColor.opacity(0.72)],
-                    startPoint: .top, endPoint: .bottom))
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
-            Image(systemName: "viewfinder")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.white)
-        }
-        .frame(width: 36, height: 36)
-        .shadow(color: .black.opacity(0.12), radius: 1, y: 1)
-        .accessibilityHidden(true)
-    }
-}
-
-// Selected bytes are carved out of the used segment so the bar previews the result of a reclaim.
+// Selected bytes are drawn over the found-items bar, so ticking items previews what a cleanup would take.
 private struct CapacityBar: View {
-    let disk: DiskSnapshot
-    let selectedBytes: Int64
+    let segments: [(color: Color, bytes: Int64)]
+    let total: Int64
+    let selected: Int64
 
     var body: some View {
-        let total = max(Double(disk.totalBytes), 1)
-        let used = Double(max(disk.usedBytes, 0)) / total
-        let selected = Double(min(selectedBytes, max(disk.usedBytes, 0))) / total
-
-        VStack(alignment: .leading, spacing: 7) {
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Rectangle().fill(Palette.track)
-                    Rectangle()
-                        .fill(Palette.used)
-                        .frame(width: geo.size.width * used)
-                    Rectangle()
-                        .fill(Color.accentColor)
-                        .frame(width: geo.size.width * selected)
-                        .offset(x: geo.size.width * (used - selected))
+        GeometryReader { geo in
+            let scale = total > 0 ? geo.size.width / CGFloat(total) : 0
+            ZStack(alignment: .leading) {
+                HStack(spacing: 2) {
+                    ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
+                        Rectangle()
+                            .fill(segment.color.opacity(0.28))
+                            .frame(width: max(0, CGFloat(segment.bytes) * scale - 2))
+                    }
                 }
-            }
-            .frame(height: 6)
-            .clipShape(Capsule())
-
-            HStack(spacing: 14) {
-                LegendDot(color: Palette.used, text: "Used \(Int(disk.usedPercent.rounded()))%")
-                if selectedBytes > 0 {
-                    LegendDot(color: .accentColor, text: "Selected \(ByteFormatter.string(selectedBytes))")
-                        .transition(.opacity)
-                }
-                LegendDot(color: Palette.track, text: "Free")
+                Capsule()
+                    .fill(Color.accentColor)
+                    .frame(width: CGFloat(min(selected, total)) * scale)
             }
         }
-        .animation(.easeOut(duration: 0.25), value: selectedBytes)
-        .animation(.easeOut(duration: 0.25), value: disk.freeBytes)
+        .frame(height: 6)
+        .clipShape(Capsule())
+        .background(Capsule().fill(Color.primary.opacity(0.05)))
+        .accessibilityElement()
+        .accessibilityLabel("\(ByteFormatter.string(selected)) selected of \(ByteFormatter.string(total)) found")
     }
 }
 
@@ -638,11 +487,8 @@ private struct LegendDot: View {
     let text: String
 
     var body: some View {
-        HStack(spacing: 5) {
-            Circle()
-                .fill(color)
-                .overlay(Circle().strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5))
-                .frame(width: 7, height: 7)
+        HStack(spacing: 6) {
+            Circle().fill(color).frame(width: 7, height: 7)
             Text(text)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -651,275 +497,510 @@ private struct LegendDot: View {
     }
 }
 
-// MARK: - List
+// MARK: - Tier picker
 
-private struct ListHeader: View {
-    @ObservedObject var vm: StorageViewModel
-    let visible: [CleanupItem]
-    let clearFilters: () -> Void
+private struct TierPicker: View {
+    static let options: [SafetyLevel?] = [nil, .safe, .review, .keep]
 
-    private var isFiltered: Bool {
-        vm.safetyFilter != nil || vm.categoryFilter != nil || !vm.searchText.isEmpty
-    }
-
-    private var scopeTitle: String {
-        var parts: [String] = []
-        if let level = vm.safetyFilter { parts.append(level.label) }
-        if let category = vm.categoryFilter { parts.append(category.rawValue) }
-        return parts.isEmpty ? "All items" : parts.joined(separator: " · ")
-    }
+    @Binding var selection: SafetyLevel?
+    let counts: [Int]
+    @Namespace private var namespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let total = visible.reduce(Int64(0)) { $0 + $1.bytes }
-
-        HStack(spacing: 10) {
-            Text(scopeTitle).font(.headline).lineLimit(1)
-            Text("\(visible.count) \(visible.count == 1 ? "item" : "items") · \(ByteFormatter.string(total))")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-                .fixedSize()
-            if isFiltered {
-                Button(action: clearFilters) {
-                    Label("Clear filters", systemImage: "xmark.circle.fill")
-                        .labelStyle(.iconOnly)
+        HStack(spacing: 0) {
+            ForEach(Array(Self.options.enumerated()), id: \.offset) { index, option in
+                let isOn = option == selection
+                Button {
+                    withAnimation(motion(reduceMotion)) { selection = option }
+                } label: {
+                    HStack(spacing: 5) {
+                        Text(option?.label ?? "All")
+                        Text("\(counts[index])")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .monospacedDigit()
+                    }
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(isOn ? .primary : .secondary)
+                    .padding(.horizontal, 12)
+                    .frame(minWidth: 62)
+                    .frame(height: 26)
+                    .background {
+                        if isOn {
+                            // One pill shared across segments slides between them instead of cross-fading.
+                            Capsule()
+                                .fill(Color(nsColor: .controlBackgroundColor))
+                                .shadow(color: .black.opacity(0.12), radius: 1, y: 1)
+                                .matchedGeometryEffect(id: "pill", in: namespace)
+                        }
+                    }
+                    .contentShape(Capsule())
                 }
-                .buttonStyle(.borderless)
-                .foregroundStyle(.tertiary)
-                .help("Clear filters")
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isOn ? .isSelected : [])
             }
-            if vm.isScanning {
-                ProgressView().controlSize(.small)
-                Text("Rescanning…").font(.caption).foregroundStyle(.secondary).fixedSize()
-            }
-
-            Spacer(minLength: 12)
-
-            ViewThatFits(in: .horizontal) {
-                Label("Safety, then size", systemImage: "arrow.down")
-                Image(systemName: "arrow.down")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .help("Sorted by safety tier (Safe first), then largest first.")
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
+        .padding(2)
+        .background(Capsule().fill(Color.primary.opacity(0.06)))
+        .fixedSize()
     }
 }
 
+// MARK: - List
+
 private struct ItemList: View {
     @ObservedObject var vm: StorageViewModel
-    let items: [CleanupItem]
+    let onQuickLook: (CleanupItem) -> Void
+    @FocusState private var isFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let maxBytes = max(items.map(\.bytes).max() ?? 1, 1)
-
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(items) { item in
-                    ItemRow(
-                        item: item,
-                        isSelected: selectionBinding(for: item),
-                        sizeFraction: Double(item.bytes) / Double(maxBytes)
-                    )
-                    if item.id != items.last?.id {
-                        Divider().padding(.leading, 52)
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 2) {
+                    ForEach(vm.visibleItems) { item in
+                        ItemRow(
+                            item: item,
+                            isFocused: item.id == vm.focusedID,
+                            onToggle: { withAnimation(motion(reduceMotion)) { vm.toggle(item.id) } },
+                            onFocus: {
+                                vm.focusedID = item.id
+                                isFocused = true
+                            },
+                            onQuickLook: { onQuickLook(item) }
+                        )
+                        .id(item.id)
+                        .transition(.opacity)
                     }
                 }
+                .padding(.horizontal, 14)
+                .padding(.top, 4)
+                .padding(.bottom, 96)
             }
-            .padding(.bottom, 8)
+            .focusable()
+            .focused($isFocused)
+            .focusEffectDisabled()
+            .onKeyPress(.upArrow) {
+                vm.moveFocus(by: -1)
+                return .handled
+            }
+            .onKeyPress(.downArrow) {
+                vm.moveFocus(by: 1)
+                return .handled
+            }
+            .onKeyPress(.space) {
+                guard let id = vm.focusedID else { return .ignored }
+                withAnimation(motion(reduceMotion)) { vm.toggle(id) }
+                return .handled
+            }
+            .onChange(of: vm.focusedID) { _, id in
+                guard let id else { return }
+                withAnimation(motion(reduceMotion, .smooth(duration: 0.2))) { proxy.scrollTo(id) }
+            }
+            .onAppear { isFocused = true }
         }
-    }
-
-    // Bound by id rather than index so a rescan replacing `items` can't leave a stale index behind.
-    private func selectionBinding(for item: CleanupItem) -> Binding<Bool> {
-        Binding(
-            get: { vm.items.first { $0.id == item.id }?.selected ?? false },
-            set: { newValue in
-                if let i = vm.items.firstIndex(where: { $0.id == item.id }) {
-                    vm.items[i].selected = newValue
-                }
-            }
-        )
     }
 }
 
 private struct ItemRow: View {
     let item: CleanupItem
-    @Binding var isSelected: Bool
-    let sizeFraction: Double
+    let isFocused: Bool
+    let onToggle: () -> Void
+    let onFocus: () -> Void
+    let onQuickLook: () -> Void
     @State private var isHovered = false
 
-    private var fileURL: URL {
-        URL(fileURLWithPath: (item.path as NSString).expandingTildeInPath)
-    }
-
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Toggle("Select \(item.name)", isOn: $isSelected)
-                .labelsHidden()
-                .toggleStyle(.checkbox)
-                .padding(.top, 1)
+        HStack(spacing: 12) {
+            SelectionCheck(isOn: item.selected, label: item.name, action: onToggle)
 
-            VStack(alignment: .leading, spacing: 5) {
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        title
-                        SafetyBadge(level: item.safety)
-                        CategoryTag(category: item.category)
-                    }
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            title
-                            SafetyBadge(level: item.safety)
-                        }
-                        CategoryTag(category: item.category)
-                    }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.name)
-                            .font(.body.weight(.semibold))
-                            .fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: 8) {
-                            SafetyBadge(level: item.safety)
-                            CategoryTag(category: item.category)
-                        }
-                    }
-                }
+            OwnerIcon(owner: item.owner, size: 26)
 
-                Text(item.whatItIs)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(item.name)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                Text(item.owner.name)
                     .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Image(systemName: "arrow.turn.down.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                    Text("\(Text("If removed:").fontWeight(.medium)) \(item.whatHappensIfRemoved)")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Text(item.path)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 1)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
+            .help("\(item.name) · \(item.owner.name)")
 
-            Spacer(minLength: 16)
+            Spacer(minLength: 12)
 
-            SizeColumn(formatted: item.formattedSize, fraction: sizeFraction, tint: item.safety.tint)
+            TierTag(level: item.safety)
+                .frame(width: 72, alignment: .leading)
+
+            Text(item.formattedSize)
+                .fontWeight(.medium)
+                .monospacedDigit()
+                .frame(width: 80, alignment: .trailing)
+
+            Button {
+                reveal(item)
+            } label: {
+                Image(systemName: "folder")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 26, height: 26)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .opacity(isHovered ? 1 : 0)
+            .help("Reveal in Finder")
+            .accessibilityLabel("Reveal \(item.name) in Finder")
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
-        .background(rowBackground)
-        .overlay(alignment: .leading) {
-            Rectangle()
-                .fill(Color.accentColor)
-                .frame(width: 2)
-                .opacity(isSelected ? 1 : 0)
-        }
+        .padding(.horizontal, 12)
+        .frame(height: 46)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(background)
+        )
         .contentShape(Rectangle())
-        .onTapGesture { isSelected.toggle() }
+        .onTapGesture(perform: onFocus)
         .onHover { isHovered = $0 }
         .animation(.easeOut(duration: 0.12), value: isHovered)
-        .animation(.easeOut(duration: 0.12), value: isSelected)
         .contextMenu {
-            Button(isSelected ? "Deselect" : "Select") { isSelected.toggle() }
+            Button(item.selected ? "Deselect" : "Select", action: onToggle)
             Divider()
-            Button("Reveal in Finder") {
-                NSWorkspace.shared.activateFileViewerSelecting([fileURL])
-            }
+            Button("Reveal in Finder") { reveal(item) }
+            Button("Quick Look", action: onQuickLook)
             Button("Copy Path") {
                 NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(fileURL.path, forType: .string)
+                NSPasteboard.general.setString(item.url.path, forType: .string)
             }
         }
     }
 
-    private var title: some View {
-        Text(item.name)
-            .font(.body.weight(.semibold))
-            .fixedSize()
-    }
-
-    private var rowBackground: Color {
-        if isSelected { return Color.accentColor.opacity(isHovered ? 0.11 : 0.08) }
-        return isHovered ? Color.primary.opacity(0.035) : .clear
+    private var background: Color {
+        if isFocused { return Color.accentColor.opacity(0.12) }
+        return isHovered ? Color.primary.opacity(0.045) : .clear
     }
 }
 
-private struct SizeColumn: View {
-    let formatted: String
-    let fraction: Double
-    let tint: Color
+private struct SelectionCheck: View {
+    let isOn: Bool
+    let label: String
+    let action: () -> Void
 
     var body: some View {
-        let size = splitSize(formatted)
-
-        VStack(alignment: .trailing, spacing: 7) {
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(size.value)
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                Text(size.unit)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .strokeBorder(isOn ? Color.accentColor : Color.secondary.opacity(0.55), lineWidth: 1.5)
+                    .background(Circle().fill(isOn ? Color.accentColor : Color.clear))
+                Image(systemName: "checkmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.white)
+                    .opacity(isOn ? 1 : 0)
             }
-            GeometryReader { geo in
-                ZStack(alignment: .trailing) {
-                    Capsule().fill(Palette.track)
-                    Capsule()
-                        .fill(tint.opacity(0.75))
-                        .frame(width: max(3, geo.size.width * fraction))
-                }
-            }
-            .frame(width: 64, height: 3)
+            .frame(width: 18, height: 18)
+            .contentShape(Circle())
         }
-        .frame(width: 104, alignment: .trailing)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(formatted)
+        .buttonStyle(PressScaleStyle())
+        .animation(.easeOut(duration: 0.15), value: isOn)
+        .accessibilityLabel("Select \(label)")
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 
-private struct SafetyBadge: View {
+private struct PressScaleStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.86 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+private struct TierTag: View {
     let level: SafetyLevel
 
     var body: some View {
-        HStack(spacing: 3) {
-            Image(systemName: level.symbol)
-                .font(.system(size: 8, weight: .bold))
-            Text(level.label.uppercased())
-                .font(.system(size: 9.5, weight: .semibold))
-                .tracking(0.4)
+        HStack(spacing: 6) {
+            Circle().fill(level.tint).frame(width: 6, height: 6)
+            Text(level.label)
+                .font(.callout)
+                .foregroundStyle(.secondary)
         }
-        .foregroundStyle(level.tint)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2.5)
-        .fixedSize()
-        .background(level.tint.opacity(0.13), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .strokeBorder(level.tint.opacity(0.28), lineWidth: 0.5)
-        )
-        .help(level.shortExplanation)
+        .help(level.note)
     }
 }
 
-private struct CategoryTag: View {
-    let category: ScanCategory
+// The installed app's own icon when there is one; otherwise a neutral tile with the owner's SF Symbol.
+private struct OwnerIcon: View {
+    let owner: ItemOwner
+    let size: CGFloat
 
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: category.symbol)
-                .font(.system(size: 10))
-            Text(category.rawValue)
+        if let image = AppIcons.icon(for: owner) {
+            Image(nsImage: image)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
+        } else {
+            RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                .fill(Color.primary.opacity(0.07))
+                .overlay(
+                    Image(systemName: owner.symbol)
+                        .font(.system(size: size * 0.46, weight: .medium))
+                        .foregroundStyle(.secondary)
+                )
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
         }
-        .font(.caption)
-        .foregroundStyle(.secondary)
+    }
+}
+
+// MARK: - Details
+
+private struct DetailsPane: View {
+    let item: CleanupItem?
+    let foundBytes: Int64
+    let onToggle: () -> Void
+    let onReveal: () -> Void
+    let onQuickLook: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Group {
+            if let item {
+                VStack(spacing: 0) {
+                    ScrollView {
+                        details(item)
+                            .padding(20)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    Divider()
+                    actions(item)
+                        .padding(16)
+                }
+                .id(item.id)
+                .transition(.opacity)
+            } else {
+                ContentUnavailableView {
+                    Label("Nothing selected", systemImage: "sidebar.right")
+                } description: {
+                    Text("Pick an item to see what it is and what removing it would do.")
+                }
+            }
+        }
+        .animation(motion(reduceMotion, .easeOut(duration: 0.16)), value: item?.id)
+    }
+
+    private func details(_ item: CleanupItem) -> some View {
+        let size = splitSize(item.formattedSize)
+        let share = foundBytes > 0 ? Double(item.bytes) / Double(foundBytes) : 0
+
+        return VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                OwnerIcon(owner: item.owner, size: 44)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.name)
+                        .font(.title3.weight(.semibold))
+                    Text("\(item.owner.name) · \(item.category.rawValue)")
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(size.value)
+                        .font(.system(size: 30, weight: .semibold))
+                        .monospacedDigit()
+                    Text(size.unit)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text("\(max(1, Int((share * 100).rounded())))% of found")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                GeometryReader { geo in
+                    Capsule()
+                        .fill(item.safety.tint)
+                        .frame(width: max(4, geo.size.width * share))
+                }
+                .frame(height: 4)
+                .background(Capsule().fill(Color.primary.opacity(0.07)))
+            }
+
+            HStack(alignment: .top, spacing: 10) {
+                Circle()
+                    .fill(item.safety.tint)
+                    .frame(width: 8, height: 8)
+                    .padding(.top, 5)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.safety.label).fontWeight(.semibold)
+                    Text(item.safety.note).foregroundStyle(.secondary)
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.primary.opacity(0.04)))
+
+            section("What it is", item.whatItIs)
+            section("If removed", item.whatHappensIfRemoved)
+
+            Divider()
+
+            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 12, verticalSpacing: 8) {
+                GridRow {
+                    Text("Last modified").foregroundStyle(.secondary)
+                    Text(item.lastModified.map { $0.formatted(.relative(presentation: .named)) } ?? "Unknown")
+                }
+                GridRow {
+                    Text("Location").foregroundStyle(.secondary)
+                    Text(item.path)
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                }
+            }
+            .font(.callout)
+        }
+    }
+
+    private func section(_ title: String, _ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(text)
+        }
+    }
+
+    private func actions(_ item: CleanupItem) -> some View {
+        HStack(spacing: 8) {
+            Button("Reveal", action: onReveal)
+            Button("Quick Look", action: onQuickLook)
+            Spacer(minLength: 0)
+            if item.selected {
+                Button("Selected", action: onToggle)
+                    .buttonStyle(.borderedProminent)
+            } else {
+                Button("Select", action: onToggle)
+            }
+        }
+        .buttonBorderShape(.capsule)
+    }
+}
+
+// MARK: - Floating bar
+
+private struct SelectionBar: View {
+    let count: Int
+    let bytes: Int64
+    let needsReview: Int
+    let onClear: () -> Void
+    let onTrash: () -> Void
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Text("\(count) \(count == 1 ? "item" : "items")")
+                .fontWeight(.semibold)
+                .monospacedDigit()
+            Text(ByteFormatter.string(bytes))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+            if needsReview > 0 {
+                HStack(spacing: 5) {
+                    Circle().fill(SafetyLevel.review.tint).frame(width: 6, height: 6)
+                    Text("\(needsReview) to review")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Button("Clear", action: onClear)
+                .buttonStyle(.borderless)
+            Button(action: onTrash) {
+                Label("Move to Trash", systemImage: "trash")
+            }
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .controlSize(.large)
+            .keyboardShortcut(.delete, modifiers: .command)
+        }
         .fixedSize()
+        .padding(.leading, 20)
+        .padding(.trailing, 6)
+        .padding(.vertical, 6)
+        .modifier(FloatingCapsule())
+    }
+}
+
+private struct TrashToast: View {
+    let receipt: StorageViewModel.TrashReceipt
+    let onUndo: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: receipt.failed.isEmpty ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                .font(.title3)
+                .foregroundStyle(receipt.failed.isEmpty ? Color(nsColor: .systemGreen) : Color(nsColor: .systemOrange))
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(ByteFormatter.string(receipt.bytes)) moved to the Trash")
+                    .fontWeight(.semibold)
+                    .monospacedDigit()
+                Text(receipt.failed.isEmpty
+                     ? "Empty the Trash to free the space."
+                     : "Couldn't move \(receipt.failed.joined(separator: ", ")).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .frame(maxWidth: 320, alignment: .leading)
+                    .help(receipt.failed.joined(separator: ", "))
+            }
+            if receipt.canUndo {
+                Button("Undo", action: onUndo)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.large)
+                    .keyboardShortcut("z", modifiers: .command)
+            }
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24, height: 24)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Dismiss")
+        }
+        .padding(.leading, 14)
+        .padding(.trailing, 8)
+        .padding(.vertical, 6)
+        .modifier(FloatingCapsule())
+        .task(id: receipt.id) {
+            guard receipt.failed.isEmpty else { return }
+            try? await Task.sleep(for: .seconds(8))
+            if !Task.isCancelled { onDismiss() }
+        }
+    }
+}
+
+// Liquid Glass on macOS 26 when built with its SDK; the regular material everywhere else.
+private struct FloatingCapsule: ViewModifier {
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) {
+            content.glassEffect(.regular, in: Capsule())
+        } else {
+            material(content)
+        }
+        #else
+        material(content)
+        #endif
+    }
+
+    private func material(_ content: Content) -> some View {
+        content
+            .background(.regularMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+            .shadow(color: .black.opacity(0.12), radius: 14, y: 6)
     }
 }
 
@@ -933,6 +1014,7 @@ private struct ScanningState: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -940,79 +1022,12 @@ private struct EmptyState: View {
     let rescan: () -> Void
 
     var body: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(Palette.safe.opacity(0.12))
-                    .frame(width: 84, height: 84)
-                Circle()
-                    .strokeBorder(Palette.safe.opacity(0.2), lineWidth: 1)
-                    .frame(width: 84, height: 84)
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 36, weight: .medium))
-                    .foregroundStyle(Palette.safe)
-            }
-            VStack(spacing: 6) {
-                Text("Nothing hiding here")
-                    .font(.title3.weight(.semibold))
-                Text("Inspector checked \(KnownItems.catalog.count) known caches, installer leftovers, and developer tool folders. None are large enough to be worth your attention.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 380)
-            }
+        ContentUnavailableView {
+            Label("Nothing hiding here", systemImage: "checkmark.seal")
+        } description: {
+            Text("Inspector checked \(KnownItems.catalog.count) known caches, leftovers and developer folders. None are large enough to be worth your attention.")
+        } actions: {
             Button("Scan Again", action: rescan)
-                .controlSize(.large)
         }
-        .padding(32)
-    }
-}
-
-private struct ReclaimResult: View {
-    let message: String
-    let freeNow: String
-    let onDismiss: () -> Void
-
-    // Splits the view model's "Freed X. Could not remove: …" into a headline and a detail line.
-    private var parsed: (headline: String, failures: String?) {
-        let prefix = "Freed "
-        guard message.hasPrefix(prefix) else { return (message, nil) }
-        let rest = message.dropFirst(prefix.count)
-        if let r = rest.range(of: ". ") {
-            return ("Freed \(rest[..<r.lowerBound])", String(rest[r.upperBound...]))
-        }
-        return ("Freed \(rest.hasSuffix(".") ? rest.dropLast() : rest)", nil)
-    }
-
-    var body: some View {
-        let result = parsed
-        let tint = result.failures == nil ? Palette.safe : Palette.review
-
-        HStack(spacing: 12) {
-            Image(systemName: result.failures == nil ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                .font(.system(size: 24))
-                .foregroundStyle(tint)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(result.headline)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                Text("Free space is now \(freeNow).")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-                if let failures = result.failures {
-                    Text(failures)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                        .help(failures)
-                }
-            }
-            Spacer(minLength: 12)
-            Button("Done", action: onDismiss)
-                .controlSize(.large)
-                .keyboardShortcut(.cancelAction)
-        }
-        .accessibilityElement(children: .combine)
     }
 }
