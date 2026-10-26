@@ -381,14 +381,7 @@ KnownItemSpec(
             "Historical crash logs for apps and background processes.",
             "Nothing. Fresh crash reports continue to be generated as needed."
         ),
-        KnownItemSpec(
-            "User app logs",
-            "Library/Logs",
-            .review, .cache,
-            "Logs from various apps that write under ~/Library/Logs rather than Console.",
-            "Some apps rely on their own logs for debugging — surface only, then clear what you recognize."
-        ),
-        KnownItemSpec(
+KnownItemSpec(
             "Xcode Archives",
             "Library/Developer/Xcode/Archives",
             .review, .devTool,
