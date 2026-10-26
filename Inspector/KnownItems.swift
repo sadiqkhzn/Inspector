@@ -591,5 +591,12 @@ KnownItemSpec(
             "Notion's local cache of blocks and attachments.",
             "Notion re-fetches content as you navigate. You stay signed in."
         ),
+        KnownItemSpec(
+            "Obsidian cache",
+            "Library/Application Support/obsidian/Cache",
+            .safe, .cache,
+            "Obsidian's app-level cache, separate from your markdown vault.",
+            "Rebuilds on next launch. Your vault files are not touched."
+        ),
     ]
 }
