@@ -507,5 +507,12 @@ KnownItemSpec(
             "Astral uv's download cache for Python packages and interpreters.",
             "uv re-downloads what it needs on next run. Installed tools are untouched."
         ),
+        KnownItemSpec(
+            "Poetry cache",
+            "Library/Caches/pypoetry",
+            .safe, .devTool,
+            "Poetry's cache of downloaded wheels and build artifacts.",
+            "Poetry re-downloads packages on next install."
+        ),
     ]
 }
