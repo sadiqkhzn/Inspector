@@ -1025,5 +1025,12 @@ KnownItemSpec(
             "Zulip desktop app Electron cache.",
             "Rebuilds on next launch."
         ),
+        KnownItemSpec(
+            "Google Chrome Service Worker cache",
+            "Library/Application Support/Google/Chrome/Default/Service Worker",
+            .review, .cache,
+            "Chrome's registered service worker storage for PWAs.",
+            "PWAs may re-download assets on next open; some offline-only data lost."
+        ),
     ]
 }
