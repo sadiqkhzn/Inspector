@@ -752,5 +752,12 @@ KnownItemSpec(
             "Language versions managed by asdf.",
             "You lose installed language versions until re-built."
         ),
+        KnownItemSpec(
+            "Vagrant boxes",
+            ".vagrant.d/boxes",
+            .review, .devTool,
+            "Downloaded Vagrant VM box images.",
+            "Vagrant re-downloads boxes on next 'vagrant up'."
+        ),
     ]
 }
