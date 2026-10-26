@@ -143,6 +143,9 @@ struct ContentView: View {
         } detail: {
             detail
         }
+        // The app uses `.windowResizability(.contentSize)`; without a bounded ideal height the
+        // scroll view's full content height becomes the window's size and the layout overflows.
+        .frame(minWidth: 820, idealWidth: 1080, minHeight: 560, idealHeight: 760)
         .modifier(HiddenWindowTitle())
         .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name")
         .toolbar {
@@ -185,13 +188,12 @@ struct ContentView: View {
             Divider()
             mainContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .background(Palette.contentBackground)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+                .layoutPriority(-1)
             if showResult || (hasScanned && !vm.items.isEmpty) {
                 bottomBar
             }
         }
+        .background(Palette.contentBackground)
     }
 
     @ViewBuilder
@@ -386,6 +388,15 @@ private struct Sidebar: View {
     @ObservedObject var vm: StorageViewModel
 
     var body: some View {
+        VStack(spacing: 0) {
+            facetList
+                .layoutPriority(-1)
+            Divider()
+            TierLegend()
+        }
+    }
+
+    private var facetList: some View {
         List(selection: selection) {
             Section("Safety") {
                 row(.safety(nil), title: "All Items", symbol: "tray.full", tint: .secondary, items: vm.items)
@@ -404,9 +415,6 @@ private struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            TierLegend()
-        }
     }
 
     private func row(_ facet: Facet, title: String, symbol: String, tint: Color, items: [CleanupItem]) -> some View {
