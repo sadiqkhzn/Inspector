@@ -535,5 +535,12 @@ KnownItemSpec(
             "GitHub Desktop's log files.",
             "Nothing. New logs continue to be written as needed."
         ),
+        KnownItemSpec(
+            "GitKraken cache",
+            "Library/Application Support/GitKraken/Cache",
+            .safe, .cache,
+            "GitKraken's HTTP response and avatar cache.",
+            "GitKraken rebuilds the cache. Repositories and settings are untouched."
+        ),
     ]
 }
