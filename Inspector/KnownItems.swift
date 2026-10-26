@@ -276,5 +276,12 @@ KnownItemSpec(
             "Gradle's cache of downloaded dependencies and build state.",
             "Next Gradle build re-downloads dependencies, otherwise identical."
         ),
+        KnownItemSpec(
+            "Maven local repository",
+            ".m2/repository",
+            .safe, .devTool,
+            "Maven's local repository of downloaded artifacts.",
+            "Next Maven build re-downloads artifacts from remote repositories."
+        ),
     ]
 }
