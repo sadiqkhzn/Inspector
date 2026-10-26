@@ -976,5 +976,12 @@ KnownItemSpec(
             "QuickTime Player X's container, including autosaved recordings.",
             "You lose unsaved QuickTime recordings."
         ),
+        KnownItemSpec(
+            "Final Cut Pro Backups",
+            "Movies/Final Cut Backups",
+            .review, .appData,
+            "Final Cut Pro automatic library backups.",
+            "You lose automatic backup copies. Current libraries are untouched."
+        ),
     ]
 }
