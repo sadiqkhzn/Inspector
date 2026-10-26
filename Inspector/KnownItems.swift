@@ -556,5 +556,12 @@ KnownItemSpec(
             "Volta's temp directory for in-progress downloads and installs.",
             "Nothing. Installed Node, npm, Yarn versions are kept."
         ),
+        KnownItemSpec(
+            "jenv cache",
+            ".jenv/versions",
+            .keep, .devTool,
+            "jenv's symlinks to installed Java versions.",
+            "You lose the ability to switch between Java versions until reconfigured. Only clear if you no longer use jenv."
+        ),
     ]
 }
