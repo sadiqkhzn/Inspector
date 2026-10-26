@@ -878,5 +878,12 @@ KnownItemSpec(
             "kubectl's HTTP discovery cache for Kubernetes API resources.",
             "kubectl rebuilds discovery on next command."
         ),
+        KnownItemSpec(
+            "Minikube data",
+            ".minikube/cache",
+            .review, .devTool,
+            "Minikube downloaded ISO and preloaded images.",
+            "Minikube re-downloads on next 'minikube start'. Running clusters are not affected."
+        ),
     ]
 }
