@@ -12,7 +12,7 @@ final class StorageViewModel: ObservableObject {
     }
 
     var formattedSelected: String {
-        ByteCountFormatter.string(fromByteCount: selectedBytes, countStyle: .file)
+        ByteFormatter.string(selectedBytes)
     }
 
     func refresh() async {
@@ -37,7 +37,7 @@ final class StorageViewModel: ObservableObject {
             }
         }
         await refresh()
-        let freed = ByteCountFormatter.string(fromByteCount: reclaimed, countStyle: .file)
+        let freed = ByteFormatter.string(reclaimed)
         if failed.isEmpty {
             statusMessage = "Freed \(freed)."
         } else {
