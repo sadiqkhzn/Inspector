@@ -1,0 +1,39 @@
+name: UI screenshot
+
+on:
+  push:
+    branches: [claude/inspector-frontend-redesign-uo60sw]
+  workflow_dispatch:
+
+jobs:
+  screenshot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild -version
+          xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build | tail -30
+      - name: Launch and capture
+        run: |
+          system_profiler SPDisplaysDataType | grep -i resolution || true
+          open build/Build/Products/Debug/Inspector.app
+          sleep 25
+          screencapture -x shot.png
+          osascript -e 'tell application "System Events" to tell process "Inspector" to get {position, size} of window 1' || true
+          sips -Z 1280 -s format jpeg -s formatOptions 55 shot.png --out shot.jpg >/dev/null
+          ls -l shot.jpg
+          echo "BEGIN_SHOT"
+          base64 -i shot.jpg | tr -d '\n' | fold -w 8000
+          echo
+          echo "END_SHOT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shot-${{ matrix.os }}
+          path: shot.png
