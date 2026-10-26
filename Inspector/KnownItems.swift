@@ -248,5 +248,12 @@ KnownItemSpec(
             "Discord's cache: emoji, images, cached messages for faster scroll.",
             "Rebuilds as you use Discord. You'll stay signed in."
         ),
+        KnownItemSpec(
+            "Figma data",
+            "Library/Application Support/Figma",
+            .review, .appData,
+            "Figma desktop's local cache and project state.",
+            "Figma syncs from the cloud on next launch. You'll stay signed in."
+        ),
     ]
 }
