@@ -927,5 +927,12 @@ KnownItemSpec(
             "Google Drive File Stream log directory.",
             "New logs are written as needed."
         ),
+        KnownItemSpec(
+            "Box cache",
+            "Library/Application Support/Box/Box/cache",
+            .safe, .cache,
+            "Box Drive client cache.",
+            "Box rebuilds the cache. Synced files are untouched."
+        ),
     ]
 }
