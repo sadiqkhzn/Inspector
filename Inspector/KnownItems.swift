@@ -941,5 +941,12 @@ KnownItemSpec(
             "Backblaze backup client's working data.",
             "May force a re-scan of backup state. Avoid clearing if backup is active."
         ),
+        KnownItemSpec(
+            "Audacity cache",
+            "Library/Application Support/audacity",
+            .review, .appData,
+            "Audacity session data including unsaved projects.",
+            "You may lose unsaved recording work."
+        ),
     ]
 }
