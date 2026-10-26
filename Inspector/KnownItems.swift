@@ -269,5 +269,12 @@ KnownItemSpec(
             "Android Studio's build cache and project index.",
             "Projects re-index on next open. Builds take longer the first time, then normal."
         ),
+        KnownItemSpec(
+            "Gradle cache",
+            ".gradle/caches",
+            .safe, .devTool,
+            "Gradle's cache of downloaded dependencies and build state.",
+            "Next Gradle build re-downloads dependencies, otherwise identical."
+        ),
     ]
 }
