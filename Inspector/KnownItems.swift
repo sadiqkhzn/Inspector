@@ -304,5 +304,12 @@ KnownItemSpec(
             "pnpm's content-addressable store of downloaded packages.",
             "pnpm re-downloads packages on next install."
         ),
+        KnownItemSpec(
+            "Bun install cache",
+            ".bun/install/cache",
+            .safe, .devTool,
+            "Bun's cache of downloaded packages.",
+            "Bun re-downloads packages on next install."
+        ),
     ]
 }
