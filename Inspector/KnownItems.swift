@@ -731,5 +731,12 @@ KnownItemSpec(
             "Node versions installed via fnm.",
             "You lose installed Node versions until re-installed."
         ),
+        KnownItemSpec(
+            "pyenv versions",
+            ".pyenv/versions",
+            .keep, .devTool,
+            "Python versions installed via pyenv.",
+            "You lose installed Python versions until re-built."
+        ),
     ]
 }
