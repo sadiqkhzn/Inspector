@@ -528,5 +528,12 @@ KnownItemSpec(
             "Jupyter's temporary runtime data (connection files, kernel IDs).",
             "Nothing. Fresh runtime files are created when you start a kernel."
         ),
+        KnownItemSpec(
+            "GitHub Desktop logs",
+            "Library/Application Support/GitHub Desktop/logs",
+            .safe, .cache,
+            "GitHub Desktop's log files.",
+            "Nothing. New logs continue to be written as needed."
+        ),
     ]
 }
