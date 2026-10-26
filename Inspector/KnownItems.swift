@@ -682,5 +682,12 @@ KnownItemSpec(
             "IntelliJ IDEA project index cache.",
             "IntelliJ re-indexes on next project open."
         ),
+        KnownItemSpec(
+            "WebStorm cache",
+            "Library/Caches/JetBrains/WebStorm",
+            .safe, .devTool,
+            "WebStorm project index cache.",
+            "WebStorm re-indexes on next project open."
+        ),
     ]
 }
