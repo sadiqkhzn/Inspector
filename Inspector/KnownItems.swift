@@ -213,5 +213,12 @@ KnownItemSpec(
             "Safari's browser cache. Rebuilt as you browse.",
             "Nothing. Safari rebuilds the cache on next launch."
         ),
+        KnownItemSpec(
+            "Microsoft Edge cache",
+            "Library/Caches/Microsoft Edge",
+            .safe, .cache,
+            "Edge's browser cache. Pages, images, scripts kept to speed up repeat visits.",
+            "Edge will rebuild it as you browse. Bookmarks, history, and extensions are untouched."
+        ),
     ]
 }
