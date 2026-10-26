@@ -479,5 +479,12 @@ KnownItemSpec(
             "OBS Studio's plugin configuration cache.",
             "OBS rebuilds plugin configs on next launch. Scene collections and profiles are untouched."
         ),
+        KnownItemSpec(
+            "VLC cache",
+            "Library/Caches/org.videolan.vlc",
+            .safe, .cache,
+            "VLC's media metadata and thumbnail cache.",
+            "Metadata and thumbnails rebuild as you open files."
+        ),
     ]
 }
