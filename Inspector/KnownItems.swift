@@ -864,5 +864,12 @@ KnownItemSpec(
             "AWS CLI's SSO/STS token cache.",
             "You'll re-authenticate on next CLI call."
         ),
+        KnownItemSpec(
+            "Terraform plugin cache",
+            ".terraform.d/plugin-cache",
+            .safe, .devTool,
+            "Terraform's shared provider plugin cache.",
+            "Terraform re-downloads providers on next init."
+        ),
     ]
 }
