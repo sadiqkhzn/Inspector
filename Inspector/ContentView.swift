@@ -142,6 +142,7 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: 224, max: 300)
         } detail: {
             detail
+                .navigationSplitViewColumnWidth(min: 480, ideal: 840)
         }
         .modifier(HiddenWindowTitle())
         .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name")
@@ -245,10 +246,13 @@ struct ContentView: View {
     private var actionBar: some View {
         HStack(spacing: 12) {
             if selectedItems.isEmpty {
-                Text("Nothing selected. Items marked Safe are a good place to start.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                ViewThatFits(in: .horizontal) {
+                    Text("Nothing selected. Items marked Safe are a good place to start.")
+                    Text("Nothing selected.")
+                }
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
             } else {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 8) {
@@ -263,6 +267,7 @@ struct ContentView: View {
                         Label(caution, systemImage: "eye")
                             .font(.caption)
                             .foregroundStyle(Palette.review)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -273,6 +278,7 @@ struct ContentView: View {
                 withAnimation(.easeOut(duration: 0.15)) { vm.selectAllSafe() }
             }
             .controlSize(.large)
+            .fixedSize()
             .keyboardShortcut("a", modifiers: [.command, .option])
             .disabled(!vm.items.contains { $0.safety == .safe && !$0.selected })
 
@@ -292,6 +298,7 @@ struct ContentView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .fixedSize()
             .keyboardShortcut(.delete, modifiers: .command)
             .disabled(vm.selectedBytes == 0 || isReclaiming || vm.isScanning)
         }
@@ -479,38 +486,19 @@ private struct Header: View {
     let selectedBytes: Int64
     let highlightFree: Bool
 
+    private var hasDisk: Bool { disk.totalBytes > 0 }
+
     var body: some View {
-        let free = splitSize(disk.formattedFree)
-        let hasDisk = disk.totalBytes > 0
-
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 12) {
-                BrandMark()
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Inspector")
-                        .font(.system(size: 20, weight: .semibold))
-                    Text("See what macOS hides.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center, spacing: 12) {
+                    brand
+                    Spacer(minLength: 24)
+                    diskSummary(alignment: .trailing)
                 }
-
-                Spacer(minLength: 24)
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(hasDisk ? free.value : "—")
-                            .font(.system(size: 26, weight: .semibold, design: .rounded))
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .foregroundStyle(highlightFree ? Palette.safe : Color.primary)
-                        Text(hasDisk ? "\(free.unit) free" : "free")
-                            .font(.callout.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(hasDisk ? "\(disk.formattedUsed) of \(disk.formattedTotal) used" : "Reading disk…")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
+                VStack(alignment: .leading, spacing: 12) {
+                    brand
+                    diskSummary(alignment: .leading)
                 }
             }
 
@@ -520,6 +508,41 @@ private struct Header: View {
         .padding(.top, 18)
         .padding(.bottom, 16)
         .animation(.easeOut(duration: 0.25), value: disk.freeBytes)
+    }
+
+    private var brand: some View {
+        HStack(spacing: 12) {
+            BrandMark()
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Inspector")
+                    .font(.system(size: 20, weight: .semibold))
+                Text("See what macOS hides.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            .fixedSize()
+        }
+    }
+
+    private func diskSummary(alignment: HorizontalAlignment) -> some View {
+        let free = splitSize(disk.formattedFree)
+        return VStack(alignment: alignment, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(hasDisk ? free.value : "—")
+                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .foregroundStyle(highlightFree ? Palette.safe : Color.primary)
+                Text(hasDisk ? "\(free.unit) free" : "free")
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+            Text(hasDisk ? "\(disk.formattedUsed) of \(disk.formattedTotal) used" : "Reading disk…")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        }
+        .fixedSize()
     }
 }
 
@@ -622,11 +645,12 @@ private struct ListHeader: View {
         let total = visible.reduce(Int64(0)) { $0 + $1.bytes }
 
         HStack(spacing: 10) {
-            Text(scopeTitle).font(.headline)
+            Text(scopeTitle).font(.headline).lineLimit(1)
             Text("\(visible.count) \(visible.count == 1 ? "item" : "items") · \(ByteFormatter.string(total))")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
+                .fixedSize()
             if isFiltered {
                 Button(action: clearFilters) {
                     Label("Clear filters", systemImage: "xmark.circle.fill")
@@ -638,15 +662,18 @@ private struct ListHeader: View {
             }
             if vm.isScanning {
                 ProgressView().controlSize(.small)
-                Text("Rescanning…").font(.caption).foregroundStyle(.secondary)
+                Text("Rescanning…").font(.caption).foregroundStyle(.secondary).fixedSize()
             }
 
             Spacer(minLength: 12)
 
-            Label("Safety, then size", systemImage: "arrow.down")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .help("Sorted by safety tier (Safe first), then largest first.")
+            ViewThatFits(in: .horizontal) {
+                Label("Safety, then size", systemImage: "arrow.down")
+                Image(systemName: "arrow.down")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .help("Sorted by safety tier (Safe first), then largest first.")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
@@ -708,12 +735,28 @@ private struct ItemRow: View {
                 .padding(.top, 1)
 
             VStack(alignment: .leading, spacing: 5) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(item.name)
-                        .font(.body.weight(.semibold))
-                        .lineLimit(1)
-                    SafetyBadge(level: item.safety)
-                    CategoryTag(category: item.category)
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        title
+                        SafetyBadge(level: item.safety)
+                        CategoryTag(category: item.category)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            title
+                            SafetyBadge(level: item.safety)
+                        }
+                        CategoryTag(category: item.category)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.name)
+                            .font(.body.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                        HStack(spacing: 8) {
+                            SafetyBadge(level: item.safety)
+                            CategoryTag(category: item.category)
+                        }
+                    }
                 }
 
                 Text(item.whatItIs)
@@ -733,9 +776,7 @@ private struct ItemRow: View {
                 Text(item.path)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .help(item.path)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 1)
             }
 
@@ -768,6 +809,12 @@ private struct ItemRow: View {
                 NSPasteboard.general.setString(fileURL.path, forType: .string)
             }
         }
+    }
+
+    private var title: some View {
+        Text(item.name)
+            .font(.body.weight(.semibold))
+            .fixedSize()
     }
 
     private var rowBackground: Color {
@@ -823,6 +870,7 @@ private struct SafetyBadge: View {
         .foregroundStyle(level.tint)
         .padding(.horizontal, 6)
         .padding(.vertical, 2.5)
+        .fixedSize()
         .background(level.tint.opacity(0.13), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 4, style: .continuous)
@@ -843,7 +891,7 @@ private struct CategoryTag: View {
         }
         .font(.caption)
         .foregroundStyle(.secondary)
-        .lineLimit(1)
+        .fixedSize()
     }
 }
 
@@ -928,7 +976,7 @@ private struct ReclaimResult: View {
                     Text(failures)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
                 }
             }
