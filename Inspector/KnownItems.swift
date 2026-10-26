@@ -612,5 +612,12 @@ KnownItemSpec(
             "Discord's GPU and shader cache for its Electron shell.",
             "Rebuilds on next launch."
         ),
+        KnownItemSpec(
+            "Zed editor cache",
+            "Library/Caches/dev.zed.Zed",
+            .safe, .cache,
+            "Zed editor's local cache for language servers and highlights.",
+            "Zed rebuilds the cache on next launch."
+        ),
     ]
 }
