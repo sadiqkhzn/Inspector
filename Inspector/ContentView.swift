@@ -267,7 +267,7 @@ struct ContentView: View {
                         Label(caution, systemImage: "eye")
                             .font(.caption)
                             .foregroundStyle(Palette.review)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(2)
                     }
                 }
             }
@@ -468,7 +468,7 @@ private struct TierLegend: View {
                         Text(level.shortExplanation)
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(2)
                     }
                 }
             }
@@ -976,8 +976,8 @@ private struct ReclaimResult: View {
                     Text(failures)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .textSelection(.enabled)
+                        .lineLimit(3)
+                        .help(failures)
                 }
             }
             Spacer(minLength: 12)

@@ -10,8 +10,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [sb-no-legend, sb-no-selection, sb-no-badge, sb-single-selection, sb-no-help]
-    runs-on: macos-15
+        variant: [base]
+        os: [macos-26, macos-15]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Apply variant
@@ -53,7 +54,7 @@ jobs:
           screencapture -x shot.png
           osascript -e 'tell application "System Events" to tell process "Inspector" to get {position, size} of window 1' || true
           sips -Z 900 -s format jpeg -s formatOptions 45 shot.png --out shot.jpg >/dev/null
-          echo "BEGIN_SHOT ${{ matrix.variant }}"
+          echo "BEGIN_SHOT ${{ matrix.os }}"
           base64 -i shot.jpg | tr -d '\n' | fold -w 8000
           echo
           echo "END_SHOT"
