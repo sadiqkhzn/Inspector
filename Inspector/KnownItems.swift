@@ -465,5 +465,12 @@ KnownItemSpec(
             "Container for geod — Apple's background location daemon that caches geo data.",
             "Nothing user-visible. Daemon rebuilds its cache in the background."
         ),
+        KnownItemSpec(
+            "Safari container",
+            "Library/Containers/com.apple.Safari",
+            .keep, .appData,
+            "Safari's sandboxed container holding history, favorites, and extensions.",
+            "You lose Safari history, favorites, and extensions. Only clear if you don't use Safari."
+        ),
     ]
 }
