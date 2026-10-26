@@ -7,10 +7,13 @@ final class StorageViewModel: ObservableObject {
     @Published var isScanning = false
     @Published var statusMessage: String?
     @Published var safetyFilter: SafetyLevel? = nil
+    @Published var categoryFilter: ScanCategory? = nil
 
     var visibleItems: [CleanupItem] {
-        guard let filter = safetyFilter else { return items }
-        return items.filter { $0.safety == filter }
+        items.filter { item in
+            (safetyFilter == nil || item.safety == safetyFilter!) &&
+            (categoryFilter == nil || item.category == categoryFilter!)
+        }
     }
 
     var selectedBytes: Int64 {
@@ -130,6 +133,16 @@ private struct Toolbar: View {
             }
             .pickerStyle(.menu)
             .frame(width: 140)
+
+            Picker("Category", selection: $vm.categoryFilter) {
+                Text("All categories").tag(ScanCategory?.none)
+                Text("Cache").tag(ScanCategory?.some(.cache))
+                Text("Installer leftover").tag(ScanCategory?.some(.installerLeftover))
+                Text("App data").tag(ScanCategory?.some(.appData))
+                Text("Dev tool").tag(ScanCategory?.some(.devTool))
+            }
+            .pickerStyle(.menu)
+            .frame(width: 180)
 
             Spacer()
 
