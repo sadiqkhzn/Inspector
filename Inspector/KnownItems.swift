@@ -514,5 +514,12 @@ KnownItemSpec(
             "Poetry's cache of downloaded wheels and build artifacts.",
             "Poetry re-downloads packages on next install."
         ),
+        KnownItemSpec(
+            "Conda packages",
+            "miniconda3/pkgs",
+            .safe, .devTool,
+            "Conda's cache of downloaded package archives before extraction into envs.",
+            "conda install re-downloads archives. Existing environments are untouched."
+        ),
     ]
 }
