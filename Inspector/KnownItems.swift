@@ -283,5 +283,12 @@ KnownItemSpec(
             "Maven's local repository of downloaded artifacts.",
             "Next Maven build re-downloads artifacts from remote repositories."
         ),
+        KnownItemSpec(
+            "npm cache",
+            ".npm",
+            .safe, .devTool,
+            "npm's cache of downloaded packages and tarballs.",
+            "npm re-downloads packages on next install. Nothing else changes."
+        ),
     ]
 }
