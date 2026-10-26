@@ -8,11 +8,13 @@ final class StorageViewModel: ObservableObject {
     @Published var statusMessage: String?
     @Published var safetyFilter: SafetyLevel? = nil
     @Published var categoryFilter: ScanCategory? = nil
+    @Published var searchText: String = ""
 
     var visibleItems: [CleanupItem] {
         items.filter { item in
             (safetyFilter == nil || item.safety == safetyFilter!) &&
-            (categoryFilter == nil || item.category == categoryFilter!)
+            (categoryFilter == nil || item.category == categoryFilter!) &&
+            (searchText.isEmpty || item.name.localizedCaseInsensitiveContains(searchText))
         }
     }
 
@@ -133,6 +135,10 @@ private struct Toolbar: View {
             }
             .pickerStyle(.menu)
             .frame(width: 140)
+
+            TextField("Search", text: $vm.searchText)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 180)
 
             Picker("Category", selection: $vm.categoryFilter) {
                 Text("All categories").tag(ScanCategory?.none)
