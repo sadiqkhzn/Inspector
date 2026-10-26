@@ -444,5 +444,12 @@ KnownItemSpec(
             "Insomnia's local cache of API responses and assets.",
             "Rebuilds as you continue making requests."
         ),
+        KnownItemSpec(
+            "Media Analysis daemon",
+            "Library/Containers/com.apple.mediaanalysisd",
+            .safe, .cache,
+            "Container for mediaanalysisd — the background daemon that scans Photos for people, scenes, and text.",
+            "The daemon re-scans your library in the background. First few hours after clearing may show higher CPU."
+        ),
     ]
 }
