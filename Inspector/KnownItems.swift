@@ -563,5 +563,12 @@ KnownItemSpec(
             "jenv's symlinks to installed Java versions.",
             "You lose the ability to switch between Java versions until reconfigured. Only clear if you no longer use jenv."
         ),
+        KnownItemSpec(
+            "Reeder cache",
+            "Library/Containers/com.reederapp.5.macOS/Data/Library/Caches",
+            .safe, .cache,
+            "Reeder's local article and image cache.",
+            "Reeder re-syncs from your feed sources."
+        ),
     ]
 }
