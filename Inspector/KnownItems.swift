@@ -794,5 +794,12 @@ KnownItemSpec(
             "Signal desktop's local cache for attachments and avatars.",
             "Signal re-downloads as needed."
         ),
+        KnownItemSpec(
+            "Telegram cache",
+            "Library/Group Containers/6N38VWS5BX.ru.keepcoder.Telegram/stable/account-xxxxxxxxxxxxxxxxxxxx/postbox/media",
+            .safe, .cache,
+            "Telegram's cached media files.",
+            "Telegram re-downloads media as you view it."
+        ),
     ]
 }
