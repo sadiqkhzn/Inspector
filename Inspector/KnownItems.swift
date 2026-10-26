@@ -374,5 +374,12 @@ KnownItemSpec(
             "macOS crash reports, spin dumps, and hang reports generated when apps misbehave.",
             "Nothing. Only useful for after-the-fact crash analysis."
         ),
+        KnownItemSpec(
+            "CrashReporter logs",
+            "Library/Logs/CrashReporter",
+            .safe, .cache,
+            "Historical crash logs for apps and background processes.",
+            "Nothing. Fresh crash reports continue to be generated as needed."
+        ),
     ]
 }
