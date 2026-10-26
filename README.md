@@ -57,3 +57,9 @@ name it `Inspector`, and drop the files from `Inspector/` into the target.
 - [ ] v0.3 — Permissions view (TCC database inspection)
 - [ ] v0.4 — Menu bar companion for quick scans
 - [ ] v1.0 — Signed .dmg release
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for scope, PR conventions, and catalog
+entry guidelines. All contributors are expected to follow the
+[Code of Conduct](CODE_OF_CONDUCT.md).
