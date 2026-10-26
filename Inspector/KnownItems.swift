@@ -626,5 +626,12 @@ KnownItemSpec(
             "Zed's workspace state, project settings, and local AI history.",
             "You lose recent project state and AI conversation history. Settings resync if signed in."
         ),
+        KnownItemSpec(
+            "Cursor editor cache",
+            "Library/Application Support/Cursor/Cache",
+            .safe, .cache,
+            "Cursor editor's Electron HTTP cache.",
+            "Cursor rebuilds the cache on next launch."
+        ),
     ]
 }
