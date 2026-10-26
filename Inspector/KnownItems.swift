@@ -388,5 +388,12 @@ KnownItemSpec(
             "Logs from various apps that write under ~/Library/Logs rather than Console.",
             "Some apps rely on their own logs for debugging — surface only, then clear what you recognize."
         ),
+        KnownItemSpec(
+            "Xcode Archives",
+            "Library/Developer/Xcode/Archives",
+            .review, .devTool,
+            "Archived builds Xcode keeps after you Archive for distribution. Includes dSYMs.",
+            "You lose dSYMs for crash symbolication of past releases. Only clear if you've exported dSYMs elsewhere."
+        ),
     ]
 }
