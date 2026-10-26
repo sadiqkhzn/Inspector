@@ -570,5 +570,12 @@ KnownItemSpec(
             "Reeder's local article and image cache.",
             "Reeder re-syncs from your feed sources."
         ),
+        KnownItemSpec(
+            "Craft cache",
+            "Library/Application Support/com.lukilabs.lukiapp/Cache",
+            .safe, .cache,
+            "Craft's local asset cache.",
+            "Craft rebuilds the cache as you open documents."
+        ),
     ]
 }
