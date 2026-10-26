@@ -11,6 +11,7 @@
 		0D130AB325962863C029173E /* InspectorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77F9BF11B9BACC09F814094 /* InspectorApp.swift */; };
 		4FD24E588136F8C788BD31BD /* ByteFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C66500B466E568C2EFDFA9 /* ByteFormatter.swift */; };
 		79C9EB722C8138959184702A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5A7169791F9255CD8B4F6D /* Models.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* Owners.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F1E2D3C4B5A69788796A5B4 /* Owners.swift */; };
 		E1DE85F1938A193EA1FB1AF0 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15439FAD68B454F99E76B3B /* Scanner.swift */; };
 		FA03737E59FCCD87A7F1FC61 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF81F8EEB85C03AA644E2C /* ContentView.swift */; };
 /* End PBXBuildFile section */
@@ -21,6 +22,7 @@
 		BDE58C2302D4D68E880A1582 /* KnownItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnownItems.swift; sourceTree = "<group>"; };
 		C8C66500B466E568C2EFDFA9 /* ByteFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteFormatter.swift; sourceTree = "<group>"; };
 		CC5A7169791F9255CD8B4F6D /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		0F1E2D3C4B5A69788796A5B4 /* Owners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Owners.swift; sourceTree = "<group>"; };
 		D15439FAD68B454F99E76B3B /* Scanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
 		D77F9BF11B9BACC09F814094 /* InspectorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorApp.swift; sourceTree = "<group>"; };
 		E7CF81F8EEB85C03AA644E2C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -44,6 +46,7 @@
 				D77F9BF11B9BACC09F814094 /* InspectorApp.swift */,
 				BDE58C2302D4D68E880A1582 /* KnownItems.swift */,
 				CC5A7169791F9255CD8B4F6D /* Models.swift */,
+				0F1E2D3C4B5A69788796A5B4 /* Owners.swift */,
 				D15439FAD68B454F99E76B3B /* Scanner.swift */,
 			);
 			path = Inspector;
@@ -120,6 +123,7 @@
 				0D130AB325962863C029173E /* InspectorApp.swift in Sources */,
 				0C020B5C90F88C0AAEDAE82A /* KnownItems.swift in Sources */,
 				79C9EB722C8138959184702A /* Models.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* Owners.swift in Sources */,
 				E1DE85F1938A193EA1FB1AF0 /* Scanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

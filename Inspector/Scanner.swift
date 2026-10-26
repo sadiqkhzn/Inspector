@@ -8,22 +8,29 @@ enum Scanner {
         for spec in KnownItems.catalog {
             let url = home.appendingPathComponent(spec.relativePath)
             guard FileManager.default.fileExists(atPath: url.path) else { continue }
-            let size = directorySize(url: url)
-            guard size >= spec.minBytesToShow else { continue }
+            let usage = directoryUsage(url: url)
+            guard usage.bytes >= spec.minBytesToShow else { continue }
             results.append(
                 CleanupItem(
                     name: spec.name,
+                    url: url,
                     path: shortPath(url.path, home: home.path),
-                    bytes: size,
+                    bytes: usage.bytes,
                     safety: spec.safety,
                     category: spec.category,
                     whatItIs: spec.whatItIs,
-                    whatHappensIfRemoved: spec.whatHappensIfRemoved
+                    whatHappensIfRemoved: spec.whatHappensIfRemoved,
+                    owner: Owners.owner(forRelativePath: spec.relativePath),
+                    lastModified: usage.lastModified
                 )
             )
         }
 
-        return results.sorted { a, b in
+        return sorted(results)
+    }
+
+    static func sorted(_ items: [CleanupItem]) -> [CleanupItem] {
+        items.sorted { a, b in
             if a.safety.sortOrder != b.safety.sortOrder {
                 return a.safety.sortOrder < b.safety.sortOrder
             }
@@ -41,29 +48,42 @@ enum Scanner {
         return DiskSnapshot(totalBytes: 0, freeBytes: 0)
     }
 
-    static func remove(_ item: CleanupItem) throws {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let fullPath = item.path.hasPrefix("~")
-            ? home.appendingPathComponent(String(item.path.dropFirst(2))).path
-            : item.path
-        try FileManager.default.removeItem(atPath: fullPath)
+    /// Moves the item to the Trash and returns where it ended up, so it can be put back.
+    static func moveToTrash(_ item: CleanupItem) throws -> URL? {
+        var resulting: NSURL?
+        try FileManager.default.trashItem(at: item.url, resultingItemURL: &resulting)
+        return resulting as URL?
     }
 
-    private static func directorySize(url: URL) -> Int64 {
+    /// Puts a trashed item back. Fails if something has since been created at the original path.
+    static func restore(_ item: CleanupItem, from trashedURL: URL) throws {
+        let fm = FileManager.default
+        guard !fm.fileExists(atPath: item.url.path) else {
+            throw CocoaError(.fileWriteFileExists, userInfo: [NSFilePathErrorKey: item.url.path])
+        }
+        try fm.createDirectory(at: item.url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try fm.moveItem(at: trashedURL, to: item.url)
+    }
+
+    private static func directoryUsage(url: URL) -> (bytes: Int64, lastModified: Date?) {
         var total: Int64 = 0
-        let keys: [URLResourceKey] = [.totalFileAllocatedSizeKey, .isDirectoryKey]
+        var latest: Date?
+        let keys: [URLResourceKey] = [.totalFileAllocatedSizeKey, .isDirectoryKey, .contentModificationDateKey]
         guard let enumerator = FileManager.default.enumerator(
             at: url, includingPropertiesForKeys: keys,
             options: [.skipsHiddenFiles], errorHandler: nil
-        ) else { return 0 }
+        ) else { return (0, nil) }
         for case let fileURL as URL in enumerator {
-            if let values = try? fileURL.resourceValues(forKeys: Set(keys)),
-               values.isDirectory == false,
-               let bytes = values.totalFileAllocatedSize {
+            guard let values = try? fileURL.resourceValues(forKeys: Set(keys)),
+                  values.isDirectory == false else { continue }
+            if let bytes = values.totalFileAllocatedSize {
                 total += Int64(bytes)
             }
+            if let date = values.contentModificationDate, date > (latest ?? .distantPast) {
+                latest = date
+            }
         }
-        return total
+        return (total, latest)
     }
 
     private static func shortPath(_ path: String, home: String) -> String {

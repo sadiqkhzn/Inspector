@@ -1,0 +1,44 @@
+name: UI screenshot
+
+on:
+  push:
+    branches: [claude/inspector-frontend-redesign-uo60sw]
+  workflow_dispatch:
+
+jobs:
+  screenshot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild -version
+          set -o pipefail
+          xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|warning: .*ContentView|warning: .*Owners|warning: .*Scanner|BUILD" || true
+          test -d build/Build/Products/Debug/Inspector.app
+      - name: Launch and capture
+        run: |
+          shot() {
+            screencapture -x "$1.png"
+            sips -Z 1100 -s format jpeg -s formatOptions 50 "$1.png" --out "$1.jpg" >/dev/null
+            echo "BEGIN_SHOT $1"
+            base64 -i "$1.jpg" | tr -d '\n' | fold -w 8000
+            echo
+            echo "END_SHOT"
+          }
+          open build/Build/Products/Debug/Inspector.app
+          sleep 25
+          osascript -e 'tell application "Inspector" to activate' || true
+          sleep 2
+          shot launch
+          osascript -e 'tell application "System Events" to keystroke "a" using {command down, option down}' || true
+          sleep 2
+          shot selected
+          osascript -e 'tell application "System Events" to key code 51 using {command down}' || true
+          sleep 2
+          shot trashed
