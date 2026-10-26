@@ -367,5 +367,12 @@ KnownItemSpec(
             "macOS QuickLook preview thumbnails.",
             "Thumbnails regenerate on demand when you preview files."
         ),
+        KnownItemSpec(
+            "Diagnostic reports",
+            "Library/Logs/DiagnosticReports",
+            .safe, .cache,
+            "macOS crash reports, spin dumps, and hang reports generated when apps misbehave.",
+            "Nothing. Only useful for after-the-fact crash analysis."
+        ),
     ]
 }
