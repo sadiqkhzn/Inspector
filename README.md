@@ -37,3 +37,11 @@ Minimum target: macOS 14 (Sonoma).
 ## License
 
 MIT. See `LICENSE`.
+
+## Build
+
+Open `Inspector.xcodeproj` in Xcode 15 or later and run with ⌘R.
+Minimum target: macOS 14 (Sonoma).
+
+If you don't yet have an `.xcodeproj`, create one via `File > New > Project > macOS App`,
+name it `Inspector`, and drop the files from `Inspector/` into the target.
