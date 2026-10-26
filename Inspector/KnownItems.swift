@@ -577,5 +577,12 @@ KnownItemSpec(
             "Craft's local asset cache.",
             "Craft rebuilds the cache as you open documents."
         ),
+        KnownItemSpec(
+            "Linear cache",
+            "Library/Application Support/Linear/Cache",
+            .safe, .cache,
+            "Linear's HTTP cache for issue and avatar data.",
+            "Linear syncs from the server on next launch."
+        ),
     ]
 }
