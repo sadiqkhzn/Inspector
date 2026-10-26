@@ -633,5 +633,12 @@ KnownItemSpec(
             "Cursor editor's Electron HTTP cache.",
             "Cursor rebuilds the cache on next launch."
         ),
+        KnownItemSpec(
+            "Cursor GPU cache",
+            "Library/Application Support/Cursor/GPUCache",
+            .safe, .cache,
+            "Cursor's GPU shader cache.",
+            "Rebuilds on next launch."
+        ),
     ]
 }
