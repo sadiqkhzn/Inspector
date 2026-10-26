@@ -717,5 +717,12 @@ KnownItemSpec(
             "Installed Rust toolchains managed by rustup.",
             "You lose installed Rust toolchains; rustup re-downloads them on demand."
         ),
+        KnownItemSpec(
+            "nvm Node versions",
+            ".nvm/versions/node",
+            .keep, .devTool,
+            "Node versions installed via nvm.",
+            "You lose installed Node versions until re-installed via nvm."
+        ),
     ]
 }
