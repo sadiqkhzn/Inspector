@@ -409,5 +409,12 @@ KnownItemSpec(
             "App Store client's download cache and preview assets.",
             "App Store rebuilds the cache on next launch. Downloaded apps are untouched."
         ),
+        KnownItemSpec(
+            "XDG cache",
+            ".cache",
+            .safe, .devTool,
+            "The ~/.cache folder used by many Linux-origin tools (uv, rustup, pre-commit, etc.) when they run on macOS.",
+            "Each tool rebuilds its own cache the next time you use it."
+        ),
     ]
 }
