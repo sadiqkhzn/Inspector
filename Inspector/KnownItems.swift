@@ -395,5 +395,12 @@ KnownItemSpec(
             "Archived builds Xcode keeps after you Archive for distribution. Includes dSYMs.",
             "You lose dSYMs for crash symbolication of past releases. Only clear if you've exported dSYMs elsewhere."
         ),
+        KnownItemSpec(
+            "Playground devices",
+            "Library/Developer/XCPGDevices",
+            .safe, .devTool,
+            "Simulator-like devices Xcode spins up for Playground execution.",
+            "Rebuilt the next time you run a Playground."
+        ),
     ]
 }
