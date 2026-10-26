@@ -780,5 +780,12 @@ KnownItemSpec(
             "Vivaldi browser cache.",
             "Vivaldi rebuilds the cache as you browse."
         ),
+        KnownItemSpec(
+            "Tor Browser cache",
+            "Library/Caches/org.torproject.torbrowser",
+            .safe, .cache,
+            "Tor Browser's local cache.",
+            "Rebuilds as you browse."
+        ),
     ]
 }
