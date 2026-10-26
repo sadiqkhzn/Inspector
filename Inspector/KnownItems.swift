@@ -738,5 +738,12 @@ KnownItemSpec(
             "Python versions installed via pyenv.",
             "You lose installed Python versions until re-built."
         ),
+        KnownItemSpec(
+            "pipx venvs",
+            ".local/pipx/venvs",
+            .keep, .devTool,
+            "Virtualenvs managed by pipx for CLI tools.",
+            "You lose installed CLI tools until re-installed via pipx."
+        ),
     ]
 }
