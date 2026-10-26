@@ -675,5 +675,12 @@ KnownItemSpec(
             "PyCharm project index cache.",
             "PyCharm re-indexes on next project open."
         ),
+        KnownItemSpec(
+            "IntelliJ cache",
+            "Library/Caches/JetBrains/IntelliJIdea",
+            .safe, .devTool,
+            "IntelliJ IDEA project index cache.",
+            "IntelliJ re-indexes on next project open."
+        ),
     ]
 }
