@@ -297,5 +297,12 @@ KnownItemSpec(
             "Yarn's cache of downloaded packages.",
             "Yarn re-downloads packages on next install."
         ),
+        KnownItemSpec(
+            "pnpm store",
+            "Library/pnpm/store",
+            .safe, .devTool,
+            "pnpm's content-addressable store of downloaded packages.",
+            "pnpm re-downloads packages on next install."
+        ),
     ]
 }
