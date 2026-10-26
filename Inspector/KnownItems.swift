@@ -430,5 +430,12 @@ KnownItemSpec(
             "Downloaded update packages left over from Microsoft AutoUpdate.",
             "Nothing. Office apps continue to update normally."
         ),
+        KnownItemSpec(
+            "Postman cache",
+            "Library/Application Support/Postman/Cache",
+            .safe, .cache,
+            "Postman's HTTP response cache and local history.",
+            "Postman rebuilds the cache. You stay signed in; collections sync from your account."
+        ),
     ]
 }
