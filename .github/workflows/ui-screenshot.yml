@@ -10,30 +10,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-26, macos-15]
-    runs-on: ${{ matrix.os }}
+        variant: [base, no-title-modifier, no-searchable, plain-detail, plain-sidebar, no-task]
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - name: Apply variant
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          python3 - <<'PY'
+          import os
+          p = "Inspector/ContentView.swift"
+          s = open(p).read()
+          v = os.environ["VARIANT"]
+          subs = {
+              "no-title-modifier": [(".modifier(HiddenWindowTitle())", "")],
+              "no-searchable": ['.searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name")', ""],
+              "plain-detail": [("            detail\n                .navigationSplitViewColumnWidth", "            Text(\"DETAIL TOP\").frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)\n                .navigationSplitViewColumnWidth")],
+              "plain-sidebar": [("            Sidebar(vm: vm)\n", "            List { Text(\"SIDEBAR TOP\"); Text(\"row 2\") }\n")],
+              "no-task": [("            await vm.refresh()\n            hasScanned = true", "            hasScanned = true")],
+          }.get(v, [])
+          if subs and isinstance(subs[0], str):
+              subs = [tuple(subs)]
+          for a, b in subs:
+              assert a in s, (v, a)
+              s = s.replace(a, b)
+          open(p, "w").write(s)
+          PY
       - name: Build
         run: |
-          xcodebuild -version
           xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO build | tail -30
+            CODE_SIGNING_ALLOWED=NO build | grep -E "error:|BUILD" || true
       - name: Launch and capture
         run: |
-          system_profiler SPDisplaysDataType | grep -i resolution || true
           open build/Build/Products/Debug/Inspector.app
           sleep 25
           screencapture -x shot.png
           osascript -e 'tell application "System Events" to tell process "Inspector" to get {position, size} of window 1' || true
-          sips -Z 1280 -s format jpeg -s formatOptions 55 shot.png --out shot.jpg >/dev/null
-          ls -l shot.jpg
-          echo "BEGIN_SHOT"
+          sips -Z 900 -s format jpeg -s formatOptions 45 shot.png --out shot.jpg >/dev/null
+          echo "BEGIN_SHOT ${{ matrix.variant }}"
           base64 -i shot.jpg | tr -d '\n' | fold -w 8000
           echo
           echo "END_SHOT"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: shot-${{ matrix.os }}
-          path: shot.png
