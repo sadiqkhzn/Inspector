@@ -542,5 +542,12 @@ KnownItemSpec(
             "GitKraken's HTTP response and avatar cache.",
             "GitKraken rebuilds the cache. Repositories and settings are untouched."
         ),
+        KnownItemSpec(
+            "SDKMAN archives",
+            ".sdkman/archives",
+            .safe, .devTool,
+            "SDKMAN's downloaded SDK archives (JDKs, Gradle, Kotlin, etc.) kept after extraction.",
+            "Nothing. Installed SDKs are untouched; archives are only needed for reinstall."
+        ),
     ]
 }
