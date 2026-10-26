@@ -598,5 +598,12 @@ KnownItemSpec(
             "Obsidian's app-level cache, separate from your markdown vault.",
             "Rebuilds on next launch. Your vault files are not touched."
         ),
+        KnownItemSpec(
+            "Slack GPU cache",
+            "Library/Application Support/Slack/GPUCache",
+            .safe, .cache,
+            "Slack's GPU and shader cache for its Electron shell.",
+            "Rebuilds on next launch."
+        ),
     ]
 }
