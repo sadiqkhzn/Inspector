@@ -990,5 +990,12 @@ KnownItemSpec(
             "Logic Pro sampler instruments (part of sound library).",
             "You lose instruments; Logic prompts to re-download. ~GB-scale download."
         ),
+        KnownItemSpec(
+            "Garageband loops",
+            "Library/Audio/Apple Loops",
+            .review, .appData,
+            "Shared Apple Loops library used by GarageBand and Logic.",
+            "Loops re-download from inside the app when needed."
+        ),
     ]
 }
