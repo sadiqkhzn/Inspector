@@ -255,5 +255,12 @@ KnownItemSpec(
             "Figma desktop's local cache and project state.",
             "Figma syncs from the cloud on next launch. You'll stay signed in."
         ),
+        KnownItemSpec(
+            "JetBrains caches",
+            "Library/Caches/JetBrains",
+            .safe, .devTool,
+            "Shared cache for all JetBrains IDEs: indexes, local history, log files.",
+            "IDEs re-index on next launch (one-time slower start). Settings and plugins stay."
+        ),
     ]
 }
