@@ -332,5 +332,12 @@ KnownItemSpec(
             "Go's cache of downloaded module zips.",
             "Next 'go build' re-downloads modules. Installed binaries are untouched."
         ),
+        KnownItemSpec(
+            "CocoaPods cache",
+            "Library/Caches/CocoaPods",
+            .safe, .devTool,
+            "CocoaPods' cache of downloaded pod archives and spec repos.",
+            "pod install re-downloads pods. Project state untouched."
+        ),
     ]
 }
