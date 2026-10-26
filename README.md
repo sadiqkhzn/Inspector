@@ -45,3 +45,11 @@ Minimum target: macOS 14 (Sonoma).
 
 If you don't yet have an `.xcodeproj`, create one via `File > New > Project > macOS App`,
 name it `Inspector`, and drop the files from `Inspector/` into the target.
+
+## Roadmap
+
+- [x] v0.1 — Storage view
+- [ ] v0.2 — Boot view (login items + LaunchAgents + LaunchDaemons)
+- [ ] v0.3 — Permissions view (TCC database inspection)
+- [ ] v0.4 — Menu bar companion for quick scans
+- [ ] v1.0 — Signed .dmg release
