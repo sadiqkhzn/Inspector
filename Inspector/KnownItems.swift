@@ -605,5 +605,12 @@ KnownItemSpec(
             "Slack's GPU and shader cache for its Electron shell.",
             "Rebuilds on next launch."
         ),
+        KnownItemSpec(
+            "Discord GPU cache",
+            "Library/Application Support/discord/GPUCache",
+            .safe, .cache,
+            "Discord's GPU and shader cache for its Electron shell.",
+            "Rebuilds on next launch."
+        ),
     ]
 }
