@@ -402,5 +402,12 @@ KnownItemSpec(
             "Simulator-like devices Xcode spins up for Playground execution.",
             "Rebuilt the next time you run a Playground."
         ),
+        KnownItemSpec(
+            "App Store cache",
+            "Library/Caches/com.apple.appstore",
+            .safe, .cache,
+            "App Store client's download cache and preview assets.",
+            "App Store rebuilds the cache on next launch. Downloaded apps are untouched."
+        ),
     ]
 }
