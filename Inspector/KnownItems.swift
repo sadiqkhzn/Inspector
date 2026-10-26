@@ -311,5 +311,12 @@ KnownItemSpec(
             "Bun's cache of downloaded packages.",
             "Bun re-downloads packages on next install."
         ),
+        KnownItemSpec(
+            "Deno cache",
+            "Library/Caches/deno",
+            .safe, .devTool,
+            "Deno's cache of downloaded modules.",
+            "Deno re-downloads modules on next run."
+        ),
     ]
 }
