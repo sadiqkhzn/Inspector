@@ -192,5 +192,12 @@ KnownItemSpec(
             "Teams cache, logs, and session data.",
             "You'll sign in again on next launch."
         )
+        KnownItemSpec(
+            "Firefox cache",
+            "Library/Caches/Firefox",
+            .safe, .cache,
+            "Firefox's browser cache. Pages and images kept for faster repeat visits.",
+            "Firefox will rebuild it as you browse. History, bookmarks, and extensions are untouched."
+        ),
     ]
 }
