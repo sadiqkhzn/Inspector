@@ -325,5 +325,12 @@ KnownItemSpec(
             "Cargo's cache of downloaded crate archives.",
             "Cargo re-downloads crates on next build. Toolchains are untouched."
         ),
+        KnownItemSpec(
+            "Go module cache",
+            "go/pkg/mod/cache/download",
+            .safe, .devTool,
+            "Go's cache of downloaded module zips.",
+            "Next 'go build' re-downloads modules. Installed binaries are untouched."
+        ),
     ]
 }
