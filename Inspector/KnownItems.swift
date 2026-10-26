@@ -104,9 +104,9 @@ enum KnownItems {
         KnownItemSpec(
             "Steam data",
             "Library/Application Support/Steam",
-            .review, .appData,
-            "Steam client cache and session data.",
-            "Any installed games will need to be re-downloaded. If you don't play, free to clear."
+            .keep, .appData,
+            "Steam client state. On macOS this folder also contains the default install location for your Steam library (SteamApps/common), so it can be tens or hundreds of GB of installed games.",
+            "You lose every installed Steam game and will need to re-download them (potentially hundreds of GB). Only clear if you've uninstalled Steam entirely."
         ),
         KnownItemSpec(
             "VS Code cached data",
@@ -440,9 +440,9 @@ KnownItemSpec(
         KnownItemSpec(
             "Media Analysis daemon",
             "Library/Containers/com.apple.mediaanalysisd",
-            .safe, .cache,
-            "Container for mediaanalysisd — the background daemon that scans Photos for people, scenes, and text.",
-            "The daemon re-scans your library in the background. First few hours after clearing may show higher CPU."
+            .review, .cache,
+            "Container for mediaanalysisd — the Apple background daemon that scans Photos for people, scenes, and text.",
+            "The daemon re-scans your entire Photos library in the background, which can run for hours and keep CPU and fans high. Photos features like people and search degrade until the scan completes."
         ),
         KnownItemSpec(
             "Wallpaper agent cache",
@@ -454,9 +454,9 @@ KnownItemSpec(
         KnownItemSpec(
             "geod cache",
             "Library/Containers/com.apple.geod",
-            .safe, .cache,
-            "Container for geod — Apple's background location daemon that caches geo data.",
-            "Nothing user-visible. Daemon rebuilds its cache in the background."
+            .review, .cache,
+            "Container for geod — Apple's background location daemon that caches geo and map tile data.",
+            "Location-based features may be sluggish or inaccurate until geod rebuilds its cache. Rare but possible interference with Find My, Maps, and location-aware apps."
         ),
         KnownItemSpec(
             "Safari container",
@@ -706,9 +706,9 @@ KnownItemSpec(
         KnownItemSpec(
             "Rust rustup toolchains",
             ".rustup/toolchains",
-            .review, .devTool,
-            "Installed Rust toolchains managed by rustup.",
-            "You lose installed Rust toolchains; rustup re-downloads them on demand."
+            .keep, .devTool,
+            "Installed Rust toolchains managed by rustup. Each toolchain is a full compiler install, often 500 MB to 1.5 GB.",
+            "You lose every installed Rust toolchain. rustup can reinstall them, but each is a sizeable download. Only clear if you no longer use Rust."
         ),
         KnownItemSpec(
             "nvm Node versions",
@@ -748,9 +748,9 @@ KnownItemSpec(
         KnownItemSpec(
             "Vagrant boxes",
             ".vagrant.d/boxes",
-            .review, .devTool,
-            "Downloaded Vagrant VM box images.",
-            "Vagrant re-downloads boxes on next 'vagrant up'."
+            .keep, .devTool,
+            "Downloaded Vagrant VM box images. Each box is often 500 MB to 5 GB.",
+            "Vagrant re-downloads each box the next time you 'vagrant up'. Can be a very large download if you have multiple boxes."
         ),
         KnownItemSpec(
             "Parallels snapshots",
@@ -853,9 +853,9 @@ KnownItemSpec(
         KnownItemSpec(
             "AWS CLI cache",
             ".aws/cli/cache",
-            .safe, .devTool,
-            "AWS CLI's SSO/STS token cache.",
-            "You'll re-authenticate on next CLI call."
+            .review, .devTool,
+            "AWS CLI's SSO/STS token cache. Holds temporary credentials from recent sign-ins.",
+            "Any in-flight CLI script using these cached credentials fails until you re-authenticate (often via SSO browser flow). Clear when idle; avoid during long-running scripts."
         ),
         KnownItemSpec(
             "Terraform plugin cache",
@@ -874,23 +874,23 @@ KnownItemSpec(
         KnownItemSpec(
             "Minikube data",
             ".minikube/cache",
-            .review, .devTool,
-            "Minikube downloaded ISO and preloaded images.",
-            "Minikube re-downloads on next 'minikube start'. Running clusters are not affected."
+            .keep, .devTool,
+            "Minikube's downloaded ISO, preloaded images, and cluster bootstrap state.",
+            "You lose cluster bootstrap state and will need to re-pull preloaded images on next 'minikube start' (potentially GBs)."
         ),
         KnownItemSpec(
             "Colima data",
             ".colima",
-            .review, .devTool,
-            "Colima virtual machine disk and config.",
-            "You lose the Colima VM state. Only clear if intentional."
+            .keep, .devTool,
+            "Colima's virtual machine disk image, config, and cluster state. This is the entire Colima installation.",
+            "You lose the Colima VM including any images, volumes, and local state. Treat this like deleting a VM."
         ),
         KnownItemSpec(
             "Podman machines",
             ".local/share/containers/podman/machine",
-            .review, .devTool,
-            "Podman's VM state.",
-            "You lose the Podman VM. Only clear if intentional."
+            .keep, .devTool,
+            "Podman's local virtual machine images and state.",
+            "You lose every Podman machine including any built images and volumes. Treat this like deleting a VM."
         ),
         KnownItemSpec(
             "UTM VM data",
@@ -928,18 +928,18 @@ KnownItemSpec(
             "Box rebuilds the cache. Synced files are untouched."
         ),
         KnownItemSpec(
-            "Backblaze cache",
+            "Backblaze data",
             "Library/Backblaze.bzpkg/bzdata",
-            .review, .appData,
-            "Backblaze backup client's working data.",
-            "May force a re-scan of backup state. Avoid clearing if backup is active."
+            .keep, .appData,
+            "Backblaze backup client's working data including its index of what has already been backed up.",
+            "Backblaze loses its memory of what has been backed up and must re-scan and re-upload large portions of your drive. Do not clear while a backup is active or in-progress."
         ),
         KnownItemSpec(
-            "Audacity cache",
+            "Audacity data",
             "Library/Application Support/audacity",
-            .review, .appData,
-            "Audacity session data including unsaved projects.",
-            "You may lose unsaved recording work."
+            .keep, .appData,
+            "Audacity's full Application Support folder — preferences, plugins, and temp session data including unsaved projects.",
+            "You lose any unsaved recordings, custom preferences, and installed plugins. Only clear if you have no in-progress work."
         ),
         KnownItemSpec(
             "Blender temp",
@@ -958,23 +958,23 @@ KnownItemSpec(
         KnownItemSpec(
             "ScreenFlow sandbox",
             "Library/Containers/net.telestream.screenflow10",
-            .review, .appData,
-            "ScreenFlow's sandboxed data including recordings.",
-            "You may lose recent recordings. Export anything you want to keep first."
+            .keep, .appData,
+            "ScreenFlow's full sandboxed container, including unexported screen recordings.",
+            "You lose any unexported recordings — screen captures that are often the whole point of using ScreenFlow. Export first."
         ),
         KnownItemSpec(
             "QuickTime autosave",
             "Library/Containers/com.apple.QuickTimePlayerX",
-            .review, .appData,
-            "QuickTime Player X's container, including autosaved recordings.",
-            "You lose unsaved QuickTime recordings."
+            .keep, .appData,
+            "QuickTime Player X's full container, including autosaved screen and screen-with-audio recordings.",
+            "You lose every autosaved recording that was never explicitly saved to a file. These are usually one-off clips that are easy to forget about."
         ),
         KnownItemSpec(
             "Final Cut Pro Backups",
             "Movies/Final Cut Backups",
-            .review, .appData,
-            "Final Cut Pro automatic library backups.",
-            "You lose automatic backup copies. Current libraries are untouched."
+            .keep, .appData,
+            "Final Cut Pro's automatic library backup copies — the only easy recovery path if a working library gets corrupted.",
+            "You lose Final Cut's safety net for recovering a damaged library. Current libraries themselves are untouched, but if one goes bad later you have no automatic rollback."
         ),
         KnownItemSpec(
             "Logic Pro sound library",
