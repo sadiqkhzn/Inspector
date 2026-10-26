@@ -191,7 +191,7 @@ KnownItemSpec(
             .review, .appData,
             "Teams cache, logs, and session data.",
             "You'll sign in again on next launch."
-        )
+        ),
         KnownItemSpec(
             "Firefox cache",
             "Library/Caches/Firefox",

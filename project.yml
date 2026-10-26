@@ -1,0 +1,36 @@
+name: Inspector
+options:
+  bundleIdPrefix: dev.sadiqkhzn
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  Inspector:
+    type: application
+    platform: macOS
+    sources:
+      - path: Inspector
+    info:
+      path: Inspector/Info.plist
+      properties:
+        CFBundleName: Inspector
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHumanReadableCopyright: "Copyright © 2026 Sadiq Khan. MIT License."
+        NSPrincipalClass: NSApplication
+        NSSupportsAutomaticTermination: true
+        NSSupportsSuddenTermination: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.sadiqkhzn.Inspector
+        PRODUCT_NAME: Inspector
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
