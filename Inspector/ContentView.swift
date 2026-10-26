@@ -277,26 +277,30 @@ struct ContentView: View {
             .keyboardShortcut("a", modifiers: [.command, .option])
             .disabled(!vm.items.contains { $0.safety == .safe && !$0.selected })
 
-            Button {
-                isConfirmingReclaim = true
-            } label: {
-                HStack(spacing: 6) {
-                    if isReclaiming {
-                        ProgressView().controlSize(.small)
-                    } else {
-                        Image(systemName: "trash")
+            if vm.selectedBytes > 0 {
+                Button {
+                    isConfirmingReclaim = true
+                } label: {
+                    HStack(spacing: 6) {
+                        if isReclaiming {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Image(systemName: "trash")
+                        }
+                        Text("Reclaim \(vm.formattedSelected)")
+                            .monospacedDigit()
                     }
-                    Text(vm.selectedBytes > 0 ? "Reclaim \(vm.formattedSelected)" : "Reclaim")
-                        .monospacedDigit()
+                    .padding(.horizontal, 4)
                 }
-                .padding(.horizontal, 4)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .fixedSize()
+                .keyboardShortcut(.delete, modifiers: .command)
+                .disabled(isReclaiming || vm.isScanning)
+                .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .trailing)))
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .fixedSize()
-            .keyboardShortcut(.delete, modifiers: .command)
-            .disabled(vm.selectedBytes == 0 || isReclaiming || vm.isScanning)
         }
+        .animation(.easeOut(duration: 0.18), value: vm.selectedBytes > 0)
     }
 
     // MARK: Derived state
