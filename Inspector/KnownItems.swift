@@ -808,5 +808,12 @@ KnownItemSpec(
             "WhatsApp downloaded media files.",
             "WhatsApp re-downloads media when you reopen conversations."
         ),
+        KnownItemSpec(
+            "Microsoft Outlook cache",
+            "Library/Containers/com.microsoft.Outlook/Data/Library/Caches",
+            .safe, .cache,
+            "Outlook's local cache of attachments and app assets.",
+            "Outlook rebuilds the cache. Mail account state is kept."
+        ),
     ]
 }
