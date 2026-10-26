@@ -318,5 +318,12 @@ KnownItemSpec(
             "Deno's cache of downloaded modules.",
             "Deno re-downloads modules on next run."
         ),
+        KnownItemSpec(
+            "Cargo registry cache",
+            ".cargo/registry/cache",
+            .safe, .devTool,
+            "Cargo's cache of downloaded crate archives.",
+            "Cargo re-downloads crates on next build. Toolchains are untouched."
+        ),
     ]
 }
