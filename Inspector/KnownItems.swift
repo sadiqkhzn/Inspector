@@ -339,5 +339,12 @@ KnownItemSpec(
             "CocoaPods' cache of downloaded pod archives and spec repos.",
             "pod install re-downloads pods. Project state untouched."
         ),
+        KnownItemSpec(
+            "Swift Package Manager cache",
+            "Library/Caches/org.swift.swiftpm",
+            .safe, .devTool,
+            "SwiftPM's shared cache of fetched package repositories.",
+            "Xcode re-fetches packages on next resolve. Projects untouched."
+        ),
     ]
 }
