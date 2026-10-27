@@ -35,3 +35,17 @@ targets:
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_ENTITLEMENTS: Inspector/Inspector.entitlements
+
+  InspectorTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: Inspector
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.sadiqkhzn.InspectorTests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: $(TEST_HOST)
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Inspector.app/Contents/MacOS/Inspector
