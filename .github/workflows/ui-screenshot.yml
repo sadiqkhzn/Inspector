@@ -1,0 +1,58 @@
+name: UI screenshot
+
+on:
+  push:
+    branches: [feat/toolbar-polish-boot-filters]
+
+jobs:
+  screenshot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || status=$?
+          grep -E "error:|BUILD" build.log || true
+          exit ${status:-0}
+      - name: Test
+        run: |
+          xcodebuild -scheme Inspector -derivedDataPath build CODE_SIGNING_ALLOWED=NO test > test.log 2>&1 || status=$?
+          grep -E "error:|failed|passed|TEST" test.log | tail -40 || true
+          exit ${status:-0}
+      - name: Launch and capture
+        if: always()
+        run: |
+          shot() {
+            screencapture -x "$1.png"
+            sips -Z 1300 -s format jpeg -s formatOptions 55 "$1.png" --out "$1.jpg" >/dev/null
+            echo "BEGIN_SHOT $1"
+            base64 -i "$1.jpg" | tr -d '\n' | fold -w 8000
+            echo
+            echo "END_SHOT"
+          }
+          open --env INSPECTOR_DEMO=1 build/Build/Products/Debug/Inspector.app
+          sleep 25
+          osascript -e 'tell application "Inspector" to activate' || true
+          sleep 2
+          shot storage
+          osascript -e 'tell application "System Events" to keystroke "2" using {command down}' || true
+          sleep 3
+          osascript -e 'tell application "System Events" to keystroke "i" using {command down, option down}' || true
+          sleep 2
+          shot boot
+          osascript -e 'tell application "System Events" to keystroke "3" using {command down}' || true
+          sleep 3
+          shot permissions-after-switch
+          osascript -e 'tell application "System Events" to keystroke "2" using {command down}' || true
+          sleep 2
+          osascript -e 'tell application "System Events" to keystroke "3" using {command down}' || true
+          sleep 3
+          shot permissions
+          osascript -e 'tell application "System Events" to keystroke "i" using {command down, option down}' || true
+          sleep 2
+          shot permissions-details

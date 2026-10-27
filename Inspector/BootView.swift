@@ -196,57 +196,33 @@ struct BootContent: View {
         .background(Color(nsColor: .textBackgroundColor))
     }
 
+    /// One row: where the item lives on the left, enabled / disabled as a menu on the right.
     private var filterBar: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        HStack(spacing: 12) {
             PillPicker(
-                selection: $vm.filter,
+                selection: $vm.sourceFilter,
                 options: [
-                    (value: .all, label: "All", count: vm.count(for: .all)),
-                    (value: .enabled, label: "Enabled", count: vm.count(for: .enabled)),
-                    (value: .disabled, label: "Disabled", count: vm.count(for: .disabled)),
+                    (value: nil, label: "All", count: vm.items.count),
+                    (value: .userAgent, label: "User", count: vm.count(forSource: .userAgent)),
+                    (value: .systemAgent, label: "System", count: vm.count(forSource: .systemAgent)),
+                    (value: .systemDaemon, label: "Daemon", count: vm.count(forSource: .systemDaemon)),
                 ]
             )
-            HStack(spacing: 8) {
-                sourcePill(title: "User", source: .userAgent)
-                sourcePill(title: "System", source: .systemAgent)
-                sourcePill(title: "Daemon", source: .systemDaemon)
-                Spacer(minLength: 12)
-                ViewThatFits(in: .horizontal) {
-                    Text("Enabled first, daemons loudest")
-                    Text("")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .help("User: ~/Library/LaunchAgents · System: /Library/LaunchAgents · Daemon: /Library/LaunchDaemons")
+            Spacer(minLength: 12)
+            Picker("Show", selection: $vm.filter) {
+                Text("Enabled and disabled").tag(BootViewModel.StatusFilter.all)
+                Text("Enabled only (\(vm.count(for: .enabled)))").tag(BootViewModel.StatusFilter.enabled)
+                Text("Disabled only (\(vm.count(for: .disabled)))").tag(BootViewModel.StatusFilter.disabled)
             }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .fixedSize()
         }
         .padding(.leading, 26)
         .padding(.trailing, 20)
         .padding(.top, 16)
         .padding(.bottom, 6)
-    }
-
-    private func sourcePill(title: String, source: BootSource) -> some View {
-        let selected = vm.sourceFilter == source
-        let count = vm.count(forSource: source)
-        return Button {
-            vm.sourceFilter = selected ? nil : source
-        } label: {
-            HStack(spacing: 6) {
-                Text(title).fontWeight(.medium)
-                Text("\(count)")
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            .font(.caption)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(
-                Capsule().fill(selected ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.05))
-            )
-            .foregroundStyle(selected ? Color.accentColor : .primary)
-        }
-        .buttonStyle(.plain)
-        .help("Show only \(title) items (\(count))")
     }
 
     @ViewBuilder
@@ -336,8 +312,13 @@ private struct BootList: View {
             ScrollView {
                 LazyVStack(spacing: 2) {
                     ForEach(vm.groups) { group in
+                        if group.id != vm.groups.first?.id {
+                            Divider()
+                                .padding(.horizontal, 12)
+                                .padding(.top, 10)
+                        }
                         GroupHeader(group: group)
-                            .padding(.top, group.id == vm.groups.first?.id ? 4 : 12)
+                            .padding(.top, group.id == vm.groups.first?.id ? 4 : 8)
                         ForEach(group.items) { item in
                             BootRow(
                                 item: item,
