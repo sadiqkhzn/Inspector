@@ -6,7 +6,7 @@ enum Scanner {
         var results: [CleanupItem] = []
 
         for spec in KnownItems.catalog {
-            let url = home.appendingPathComponent(spec.relativePath)
+            let url = resolve(spec: spec, home: home)
             guard FileManager.default.fileExists(atPath: url.path) else { continue }
             let usage = directoryUsage(url: url)
             guard usage.bytes >= spec.minBytesToShow else { continue }
@@ -89,5 +89,23 @@ enum Scanner {
 
     private static func shortPath(_ path: String, home: String) -> String {
         path.hasPrefix(home) ? "~" + path.dropFirst(home.count) : path
+    }
+
+    /// Picks the on-disk path for a catalog entry. Honours an env var override
+    /// when the spec declares one and the variable is present in the process
+    /// environment. Falls back to `relativePath` under the user's home.
+    /// Never shells out — only reads `ProcessInfo.processInfo.environment`.
+    static func resolve(spec: KnownItemSpec, home: URL) -> URL {
+        if let envName = spec.envVar,
+           let raw = ProcessInfo.processInfo.environment[envName],
+           !raw.isEmpty {
+            let expanded = NSString(string: raw).expandingTildeInPath
+            var url = URL(fileURLWithPath: expanded)
+            if let suffix = spec.envVarSuffix, !suffix.isEmpty {
+                url = url.appendingPathComponent(suffix)
+            }
+            return url
+        }
+        return home.appendingPathComponent(spec.relativePath)
     }
 }
