@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Inspector is not sandboxed. The Permissions view in v0.3+ reads the
+         TCC privacy database, which lives in system-protected paths that
+         require the user to grant "Full Disk Access" in System Settings.
+         macOS does not expose an entitlement that requests FDA; the user
+         grants it per-app in Privacy & Security. This file exists so a
+         signed distribution build can carry additional entitlements if a
+         future feature needs them. -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+</dict>
+</plist>

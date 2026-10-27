@@ -21,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		15855173281F9CC32947DC7F /* Inspector.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Inspector.entitlements; sourceTree = "<group>"; };
 		28E2ABDC3BA1E8901B3F0CBC /* Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Inspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5004E652159EEF65AAC81E79 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8CF888034750A2AD17467415 /* BootItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootItem.swift; sourceTree = "<group>"; };
@@ -55,6 +56,7 @@
 				C8C66500B466E568C2EFDFA9 /* ByteFormatter.swift */,
 				E7CF81F8EEB85C03AA644E2C /* ContentView.swift */,
 				5004E652159EEF65AAC81E79 /* Info.plist */,
+				15855173281F9CC32947DC7F /* Inspector.entitlements */,
 				D77F9BF11B9BACC09F814094 /* InspectorApp.swift */,
 				BDE58C2302D4D68E880A1582 /* KnownItems.swift */,
 				CC5A7169791F9255CD8B4F6D /* Models.swift */,
@@ -162,6 +164,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Inspector/Inspector.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -247,6 +250,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Inspector/Inspector.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;

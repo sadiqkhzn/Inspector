@@ -57,10 +57,17 @@ name it `Inspector`, and drop the files from `Inspector/` into the target.
 ## Roadmap
 
 - [x] v0.1 — Storage view
-- [ ] v0.2 — Boot view (login items + LaunchAgents + LaunchDaemons)
+- [x] v0.2 — Boot view (user LaunchAgents; system agents coming)
 - [ ] v0.3 — Permissions view (TCC database inspection)
 - [ ] v0.4 — Menu bar companion for quick scans
 - [ ] v1.0 — Signed .dmg release
+
+### Full Disk Access
+
+The v0.3+ Permissions view reads macOS's TCC privacy database, which lives
+under system-protected paths. To use it, grant Inspector **Full Disk
+Access** in **System Settings → Privacy & Security → Full Disk Access**.
+The Storage and Boot views work without it.
 
 ## Contributing
 
