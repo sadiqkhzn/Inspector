@@ -208,7 +208,7 @@ enum KnownItems {
             "VS Code updater cache",
             "Library/Caches/com.microsoft.VSCode.ShipIt",
             .safe, .installerLeftover,
-            "Leftover updater packages from VS Code's Sparkle-based auto-updater.",
+            "Leftover updater packages from VS Code's Squirrel.Mac auto-updater (ShipIt is Squirrel.Mac's installer helper; VS Code is an Electron app, so it uses Squirrel rather than Sparkle).",
             "Nothing. The app itself keeps working.",
             verified: false
         ),
