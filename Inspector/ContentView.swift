@@ -1212,18 +1212,9 @@ private struct FloatingCapsule: ViewModifier {
 
 // MARK: - States
 
-// Permissions (v0.3) isn't built yet; the tab says so plainly rather than showing an empty list.
-private struct PermissionsPlaceholder: View {
-    var body: some View {
-        ContentUnavailableView {
-            Label("Permissions is coming in v0.3", systemImage: "hand.raised")
-        } description: {
-            Text("See which apps can use your microphone, camera and screen recording, and when they last did.")
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .textBackgroundColor))
-    }
-}
+// Permissions placeholder is retired; PermissionsView (in its own file) now
+// renders the TCC-backed content, Full Disk Access onboarding, and empty states.
+private typealias PermissionsPlaceholder = PermissionsView
 
 private struct ScanningState: View {
     var body: some View {
