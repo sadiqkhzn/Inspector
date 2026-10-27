@@ -55,7 +55,7 @@ enum BootSignatureChecker {
               let summary = SecCertificateCopySubjectSummary(leaf) as String?
         else { return nil }
 
-        if summary == "Software Signing" || summary.hasPrefix("Apple Mac OS") { return "Apple" }
+        if summary.hasSuffix("Software Signing") || summary.hasPrefix("Apple Mac OS") { return "Apple" }
         var name = summary
         if let colon = name.range(of: ": ") { name = String(name[colon.upperBound...]) }
         if let team = name.range(of: " (", options: .backwards), name.hasSuffix(")") {

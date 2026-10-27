@@ -134,6 +134,8 @@ enum BootScanner {
     /// Best-effort pretty name for the row. "com.google.keystone.agent" → "Google".
     private static func inferOwner(label: String, programDisplay: String) -> String {
         if label.hasPrefix("com.apple.") { return "Apple" }
+        // A label with no reverse-DNS prefix ("change-hostname") names no developer.
+        guard label.contains(".") else { return "Other" }
         let core = label
             .replacingOccurrences(of: "com.", with: "")
             .replacingOccurrences(of: "org.", with: "")

@@ -621,7 +621,8 @@ struct BootIcon: View {
     /// programs a terminal, and a missing program a question mark.
     private static func fallback(for item: BootItem) -> (symbol: String, tint: Color) {
         if item.signatureStatus == .missing { return ("questionmark", .secondary) }
-        if item.label.hasPrefix("homebrew.") || (item.executablePath ?? "").contains("/homebrew/") || (item.executablePath ?? "").hasPrefix("/usr/local/") {
+        let path = item.executablePath ?? ""
+        if item.label.hasPrefix("homebrew.") || path.hasPrefix("/opt/homebrew/") || path.contains("/Cellar/") || path.hasPrefix("/usr/local/opt/") {
             return ("mug.fill", Color(nsColor: .systemOrange))
         }
         return ("terminal.fill", .secondary)
