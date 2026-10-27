@@ -48,7 +48,9 @@ enum BootScanner {
         }
     }
 
-    private static func read(dir: URL, source: BootSource) -> [BootItem] {
+    /// Exposed as internal so test code can point BootScanner at a temp
+    /// directory of fake plists.
+    static func read(dir: URL, source: BootSource) -> [BootItem] {
         guard let urls = try? FileManager.default.contentsOfDirectory(
             at: dir,
             includingPropertiesForKeys: nil,
