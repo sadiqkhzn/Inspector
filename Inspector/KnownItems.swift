@@ -42,7 +42,8 @@ enum KnownItems {
             "Library/Caches/Google/Chrome",
             .safe, .cache,
             "Chrome's browser cache. Pages, images, scripts kept to speed up repeat visits.",
-            "Chrome will rebuild it as you browse. Bookmarks, history, and extensions are untouched."
+            "Chrome will rebuild it as you browse. Bookmarks, history, and extensions are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "pip cache",
@@ -56,7 +57,8 @@ enum KnownItems {
             "Library/Caches/com.apple.python",
             .safe, .devTool,
             "macOS's Python package install cache.",
-            "Rebuilds automatically on next install."
+            "Rebuilds automatically on next install.",
+            verified: true
         ),
         KnownItemSpec(
             "Playwright browsers",
@@ -85,28 +87,32 @@ enum KnownItems {
             .keep, .appData,
             "Docker images, volumes, build cache, and VM disk.",
             "You lose all local Docker images and volumes. Only clear if you've stopped using Docker.",
-            minBytesToShow: 500 * 1024 * 1024
+            minBytesToShow: 500 * 1024 * 1024,
+            verified: true
         ),
         KnownItemSpec(
             "Spotify cache",
             "Library/Caches/com.spotify.client",
             .safe, .cache,
             "Streamed track data kept for offline playback and quick replay.",
-            "Rebuilds as you listen. Playlists and library stay."
+            "Rebuilds as you listen. Playlists and library stay.",
+            verified: true
         ),
         KnownItemSpec(
             "Zoom data",
             "Library/Application Support/zoom.us",
             .review, .appData,
             "Zoom's logs, preferences, and the sign-in token for your account.",
-            "You are signed out and must sign in again, including any 2FA or SSO challenge. If you host meetings, re-registration and permission prompts may be required too."
+            "You are signed out and must sign in again, including any 2FA or SSO challenge. If you host meetings, re-registration and permission prompts may be required too.",
+            verified: true
         ),
         KnownItemSpec(
             "Zoom cache",
             "Library/Caches/us.zoom.xos",
             .safe, .cache,
             "Zoom's temp cache.",
-            "Rebuilds on next launch."
+            "Rebuilds on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Steam app cache",
@@ -153,14 +159,16 @@ enum KnownItems {
             "Library/Application Support/Code/CachedData",
             .safe, .cache,
             "VS Code's compiled module cache for extensions.",
-            "VS Code rebuilds this on next launch. Extensions and settings stay."
+            "VS Code rebuilds this on next launch. Extensions and settings stay.",
+            verified: true
         ),
         KnownItemSpec(
             "VS Code logs",
             "Library/Application Support/Code/logs",
             .safe, .cache,
             "VS Code's diagnostic logs.",
-            "Nothing. Only useful for debugging editor crashes."
+            "Nothing. Only useful for debugging editor crashes.",
+            verified: true
         ),
         KnownItemSpec(
             "node-gyp cache",
@@ -174,14 +182,16 @@ KnownItemSpec(
             "Library/Caches/com.google.antigravity.ShipIt",
             .safe, .installerLeftover,
             "Leftover updater packages from Google Antigravity.",
-            "Nothing. The app itself keeps working."
+            "Nothing. The app itself keeps working.",
+            verified: true
         ),
         KnownItemSpec(
             "Antigravity cache",
             "Library/Caches/com.google.antigravity",
             .safe, .cache,
             "Google Antigravity's runtime cache.",
-            "Rebuilds on next launch."
+            "Rebuilds on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Dr. Sprinto updater cache",
@@ -239,14 +249,16 @@ KnownItemSpec(
             "Library/Caches/Firefox",
             .safe, .cache,
             "Firefox's browser cache. Pages and images kept for faster repeat visits.",
-            "Firefox will rebuild it as you browse. History, bookmarks, and extensions are untouched."
+            "Firefox will rebuild it as you browse. History, bookmarks, and extensions are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Firefox profile data",
             "Library/Application Support/Firefox",
             .review, .appData,
             "Every Firefox profile — history, bookmarks, open tabs, installed extensions, and the password store. Saved logins live here and are only recoverable if you also use Firefox Sync.",
-            "You lose every saved password that was not also synced to a Firefox account. You also lose bookmarks, history, open tabs, extensions, and cookies. This locks you out of sites you were signed into."
+            "You lose every saved password that was not also synced to a Firefox account. You also lose bookmarks, history, open tabs, extensions, and cookies. This locks you out of sites you were signed into.",
+            verified: true
         ),
         KnownItemSpec(
             "Safari cache",
@@ -260,14 +272,16 @@ KnownItemSpec(
             "Library/Caches/Microsoft Edge",
             .safe, .cache,
             "Edge's browser cache. Pages, images, scripts kept to speed up repeat visits.",
-            "Edge will rebuild it as you browse. Bookmarks, history, and extensions are untouched."
+            "Edge will rebuild it as you browse. Bookmarks, history, and extensions are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Brave Browser cache",
             "Library/Caches/BraveSoftware",
             .safe, .cache,
             "Brave's browser cache. Rebuilt as you browse.",
-            "Brave will rebuild it as you browse. Profile, bookmarks, and history stay."
+            "Brave will rebuild it as you browse. Profile, bookmarks, and history stay.",
+            verified: true
         ),
         KnownItemSpec(
             "Arc browser cache",
@@ -282,28 +296,32 @@ KnownItemSpec(
             "Library/Application Support/Slack",
             .review, .appData,
             "Slack's full Application Support folder — cached workspace data, local search index, attachments, and session storage.",
-            "Draft messages and unsent threads are lost. Depending on your workspace's auth setup you may be signed out and need to re-authenticate through SSO. Workspace content re-downloads from the server."
+            "Draft messages and unsent threads are lost. Depending on your workspace's auth setup you may be signed out and need to re-authenticate through SSO. Workspace content re-downloads from the server.",
+            verified: true
         ),
         KnownItemSpec(
             "Discord cache",
             "Library/Application Support/discord",
             .review, .appData,
             "Discord's cache: emoji, images, cached messages for faster scroll.",
-            "Rebuilds as you use Discord. You'll stay signed in."
+            "Rebuilds as you use Discord. You'll stay signed in.",
+            verified: true
         ),
         KnownItemSpec(
             "Figma data",
             "Library/Application Support/Figma",
             .review, .appData,
             "Figma desktop's local cache and project state.",
-            "Figma syncs from the cloud on next launch. You'll stay signed in."
+            "Figma syncs from the cloud on next launch. You'll stay signed in.",
+            verified: true
         ),
         KnownItemSpec(
             "JetBrains caches",
             "Library/Caches/JetBrains",
             .safe, .devTool,
             "Shared cache for all JetBrains IDEs: indexes, local history, log files.",
-            "IDEs re-index on next launch (one-time slower start). Settings and plugins stay."
+            "IDEs re-index on next launch (one-time slower start). Settings and plugins stay.",
+            verified: true
         ),
         KnownItemSpec(
             "Android Studio caches",
@@ -421,7 +439,8 @@ KnownItemSpec(
             "Library/Logs/DiagnosticReports",
             .safe, .cache,
             "macOS crash reports, spin dumps, and hang reports generated when apps misbehave.",
-            "Nothing. Only useful for after-the-fact crash analysis."
+            "Nothing. Only useful for after-the-fact crash analysis.",
+            verified: true
         ),
         KnownItemSpec(
             "CrashReporter logs",
@@ -457,7 +476,8 @@ KnownItemSpec(
             ".cache",
             .safe, .devTool,
             "The ~/.cache folder used by many Linux-origin tools (uv, rustup, pre-commit, etc.) when they run on macOS.",
-            "Each tool rebuilds its own cache the next time you use it."
+            "Each tool rebuilds its own cache the next time you use it.",
+            verified: true
         ),
         KnownItemSpec(
             "Dropbox cache",
@@ -472,21 +492,24 @@ KnownItemSpec(
             "Library/Caches/com.microsoft.autoupdate2",
             .safe, .installerLeftover,
             "Downloaded update packages left over from Microsoft AutoUpdate.",
-            "Nothing. Office apps continue to update normally."
+            "Nothing. Office apps continue to update normally.",
+            verified: true
         ),
         KnownItemSpec(
             "Postman cache",
             "Library/Application Support/Postman/Cache",
             .safe, .cache,
             "Postman's HTTP response cache and local history.",
-            "Postman rebuilds the cache. You stay signed in; collections sync from your account."
+            "Postman rebuilds the cache. You stay signed in; collections sync from your account.",
+            verified: true
         ),
         KnownItemSpec(
             "Insomnia cache",
             "Library/Application Support/Insomnia/Cache",
             .safe, .cache,
             "Insomnia's local cache of API responses and assets.",
-            "Rebuilds as you continue making requests."
+            "Rebuilds as you continue making requests.",
+            verified: true
         ),
         KnownItemSpec(
             "Media Analysis daemon",
@@ -521,28 +544,32 @@ KnownItemSpec(
             "Library/Application Support/obs-studio/plugin_config",
             .safe, .cache,
             "OBS Studio's plugin configuration cache.",
-            "OBS rebuilds plugin configs on next launch. Scene collections and profiles are untouched."
+            "OBS rebuilds plugin configs on next launch. Scene collections and profiles are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "VLC cache",
             "Library/Caches/org.videolan.vlc",
             .safe, .cache,
             "VLC's media metadata and thumbnail cache.",
-            "Metadata and thumbnails rebuild as you open files."
+            "Metadata and thumbnails rebuild as you open files.",
+            verified: true
         ),
         KnownItemSpec(
             "iTerm2 cache",
             "Library/Caches/com.googlecode.iterm2",
             .safe, .cache,
             "iTerm2's quicklook and app cache.",
-            "Nothing user-visible. Preferences and profiles are untouched."
+            "Nothing user-visible. Preferences and profiles are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Warp terminal data",
             "Library/Application Support/dev.warp.Warp-Stable",
             .review, .appData,
             "Warp's local AI model cache, shell history mirror, and workflow data.",
-            "You'll stay signed in but may lose recent AI command history."
+            "You'll stay signed in but may lose recent AI command history.",
+            verified: true
         ),
         KnownItemSpec(
             "uv cache",
@@ -578,14 +605,16 @@ KnownItemSpec(
             "Library/Application Support/GitHub Desktop/logs",
             .safe, .cache,
             "GitHub Desktop's log files.",
-            "Nothing. New logs continue to be written as needed."
+            "Nothing. New logs continue to be written as needed.",
+            verified: true
         ),
         KnownItemSpec(
             "GitKraken cache",
             "Library/Application Support/GitKraken/Cache",
             .safe, .cache,
             "GitKraken's HTTP response and avatar cache.",
-            "GitKraken rebuilds the cache. Repositories and settings are untouched."
+            "GitKraken rebuilds the cache. Repositories and settings are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "SDKMAN archives",
@@ -627,14 +656,16 @@ KnownItemSpec(
             "Library/Application Support/Linear/Cache",
             .safe, .cache,
             "Linear's HTTP cache for issue and avatar data.",
-            "Linear syncs from the server on next launch."
+            "Linear syncs from the server on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Notion cache",
             "Library/Application Support/Notion/Cache",
             .safe, .cache,
             "Notion's local cache of blocks and attachments.",
-            "Notion re-fetches content as you navigate. You stay signed in."
+            "Notion re-fetches content as you navigate. You stay signed in.",
+            verified: true
         ),
         KnownItemSpec(
             "Obsidian cache",
@@ -649,42 +680,48 @@ KnownItemSpec(
             "Library/Application Support/Slack/GPUCache",
             .safe, .cache,
             "Slack's GPU and shader cache for its Electron shell.",
-            "Rebuilds on next launch."
+            "Rebuilds on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Discord GPU cache",
             "Library/Application Support/discord/GPUCache",
             .safe, .cache,
             "Discord's GPU and shader cache for its Electron shell.",
-            "Rebuilds on next launch."
+            "Rebuilds on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Zed editor cache",
             "Library/Caches/dev.zed.Zed",
             .safe, .cache,
             "Zed editor's local cache for language servers and highlights.",
-            "Zed rebuilds the cache on next launch."
+            "Zed rebuilds the cache on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Zed editor data",
             "Library/Application Support/Zed",
             .review, .appData,
             "Zed's workspace state, project settings, and local AI history.",
-            "You lose recent project state and AI conversation history. Settings resync if signed in."
+            "You lose recent project state and AI conversation history. Settings resync if signed in.",
+            verified: true
         ),
         KnownItemSpec(
             "Cursor editor cache",
             "Library/Application Support/Cursor/Cache",
             .safe, .cache,
             "Cursor editor's Electron HTTP cache.",
-            "Cursor rebuilds the cache on next launch."
+            "Cursor rebuilds the cache on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Cursor GPU cache",
             "Library/Application Support/Cursor/GPUCache",
             .safe, .cache,
             "Cursor's GPU shader cache.",
-            "Rebuilds on next launch."
+            "Rebuilds on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Windsurf editor cache",
@@ -705,56 +742,64 @@ KnownItemSpec(
             "Library/Caches/com.panic.Nova",
             .safe, .cache,
             "Panic Nova editor's cache.",
-            "Rebuilds on next launch."
+            "Rebuilds on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Rubymine cache",
             "Library/Caches/JetBrains/RubyMine",
             .safe, .devTool,
             "RubyMine project index cache.",
-            "RubyMine re-indexes on next project open."
+            "RubyMine re-indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "PyCharm cache",
             "Library/Caches/JetBrains/PyCharm",
             .safe, .devTool,
             "PyCharm project index cache.",
-            "PyCharm re-indexes on next project open."
+            "PyCharm re-indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "IntelliJ cache",
             "Library/Caches/JetBrains/IntelliJIdea",
             .safe, .devTool,
             "IntelliJ IDEA project index cache.",
-            "IntelliJ re-indexes on next project open."
+            "IntelliJ re-indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "WebStorm cache",
             "Library/Caches/JetBrains/WebStorm",
             .safe, .devTool,
             "WebStorm project index cache.",
-            "WebStorm re-indexes on next project open."
+            "WebStorm re-indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "GoLand cache",
             "Library/Caches/JetBrains/GoLand",
             .safe, .devTool,
             "GoLand project index cache.",
-            "GoLand re-indexes on next project open."
+            "GoLand re-indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "CLion cache",
             "Library/Caches/JetBrains/CLion",
             .safe, .devTool,
             "CLion project index cache.",
-            "CLion re-indexes on next project open."
+            "CLion re-indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "PhpStorm cache",
             "Library/Caches/JetBrains/PhpStorm",
             .safe, .devTool,
             "PhpStorm project index cache.",
-            "PhpStorm re-indexes on next project open."
+            "PhpStorm re-indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "Rust rustup toolchains",
@@ -817,14 +862,16 @@ KnownItemSpec(
             "Library/Caches/com.operasoftware.Opera",
             .safe, .cache,
             "Opera browser cache.",
-            "Opera rebuilds the cache as you browse."
+            "Opera rebuilds the cache as you browse.",
+            verified: true
         ),
         KnownItemSpec(
             "Vivaldi cache",
             "Library/Caches/com.vivaldi.Vivaldi",
             .safe, .cache,
             "Vivaldi browser cache.",
-            "Vivaldi rebuilds the cache as you browse."
+            "Vivaldi rebuilds the cache as you browse.",
+            verified: true
         ),
         KnownItemSpec(
             "Tor Browser cache",
@@ -838,7 +885,8 @@ KnownItemSpec(
             "Library/Application Support/Signal/Cache",
             .safe, .cache,
             "Signal desktop's local cache for attachments and avatars.",
-            "Signal re-downloads as needed."
+            "Signal re-downloads as needed.",
+            verified: true
         ),
         KnownItemSpec(
             "Telegram cache",
@@ -859,7 +907,8 @@ KnownItemSpec(
             "Library/Containers/com.microsoft.Outlook/Data/Library/Caches",
             .safe, .cache,
             "Outlook's local cache of attachments and app assets.",
-            "Outlook rebuilds the cache. Mail account state is kept."
+            "Outlook rebuilds the cache. Mail account state is kept.",
+            verified: true
         ),
         KnownItemSpec(
             "Spark Mail cache",
@@ -873,28 +922,32 @@ KnownItemSpec(
             "Library/Caches/Google/Chrome Canary",
             .safe, .cache,
             "Chrome Canary browser cache.",
-            "Rebuilds as you browse. Profile is untouched."
+            "Rebuilds as you browse. Profile is untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Chrome Beta cache",
             "Library/Caches/Google/Chrome Beta",
             .safe, .cache,
             "Chrome Beta browser cache.",
-            "Rebuilds as you browse."
+            "Rebuilds as you browse.",
+            verified: true
         ),
         KnownItemSpec(
             "Chrome Dev cache",
             "Library/Caches/Google/Chrome Dev",
             .safe, .cache,
             "Chrome Dev channel browser cache.",
-            "Rebuilds as you browse."
+            "Rebuilds as you browse.",
+            verified: true
         ),
         KnownItemSpec(
             "Chromium cache",
             "Library/Caches/Chromium",
             .safe, .cache,
             "Open-source Chromium browser cache.",
-            "Rebuilds as you browse."
+            "Rebuilds as you browse.",
+            verified: true
         ),
         KnownItemSpec(
             "gcloud SDK cache",
@@ -950,7 +1003,8 @@ KnownItemSpec(
             "Library/Containers/com.utmapp.UTM/Data/Documents",
             .keep, .appData,
             "UTM virtual machine images.",
-            "You lose all VMs. Do not clear unless exported elsewhere."
+            "You lose all VMs. Do not clear unless exported elsewhere.",
+            verified: true
         ),
         KnownItemSpec(
             "VirtualBox VMs",
@@ -964,7 +1018,8 @@ KnownItemSpec(
             "Library/Caches/OneDrive",
             .safe, .cache,
             "Microsoft OneDrive client cache.",
-            "OneDrive rebuilds the cache. Synced files are untouched."
+            "OneDrive rebuilds the cache. Synced files are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Google Drive logs",
@@ -979,7 +1034,8 @@ KnownItemSpec(
             "Library/Application Support/Box/Box/cache",
             .safe, .cache,
             "Box Drive client cache.",
-            "Box rebuilds the cache. Synced files are untouched."
+            "Box rebuilds the cache. Synced files are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Backblaze data",
@@ -993,14 +1049,16 @@ KnownItemSpec(
             "Library/Application Support/audacity",
             .keep, .appData,
             "Audacity's full Application Support folder — preferences, plugins, and temp session data including unsaved projects.",
-            "You lose any unsaved recordings, custom preferences, and installed plugins. Only clear if you have no in-progress work."
+            "You lose any unsaved recordings, custom preferences, and installed plugins. Only clear if you have no in-progress work.",
+            verified: true
         ),
         KnownItemSpec(
             "Blender temp",
             "Library/Caches/Blender",
             .safe, .cache,
             "Blender temp and render cache.",
-            "Rebuilds on next render."
+            "Rebuilds on next render.",
+            verified: true
         ),
         KnownItemSpec(
             "DaVinci Resolve cache",
@@ -1035,7 +1093,8 @@ KnownItemSpec(
             "Library/Application Support/Logic/Sampler Instruments",
             .review, .appData,
             "Logic Pro sampler instruments (part of sound library).",
-            "You lose instruments; Logic prompts to re-download. ~GB-scale download."
+            "You lose instruments; Logic prompts to re-download. ~GB-scale download.",
+            verified: true
         ),
         KnownItemSpec(
             "Garageband loops",
@@ -1056,21 +1115,24 @@ KnownItemSpec(
             "Library/Application Support/Microsoft/MERP2.0",
             .safe, .installerLeftover,
             "Microsoft Error Reporting Protocol cache.",
-            "Nothing. Only used for after-the-fact crash reports."
+            "Nothing. Only used for after-the-fact crash reports.",
+            verified: true
         ),
         KnownItemSpec(
             "Element cache",
             "Library/Application Support/Element/Cache",
             .safe, .cache,
             "Element (Matrix client) local cache.",
-            "Element re-downloads as you scroll conversations."
+            "Element re-downloads as you scroll conversations.",
+            verified: true
         ),
         KnownItemSpec(
             "Zulip cache",
             "Library/Application Support/Zulip/Cache",
             .safe, .cache,
             "Zulip desktop app Electron cache.",
-            "Rebuilds on next launch."
+            "Rebuilds on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Google Chrome Service Worker cache",
