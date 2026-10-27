@@ -87,6 +87,21 @@ final class PermissionsTests: XCTestCase {
 
     // MARK: - Fixture
 
+    // MARK: - Name fallback
+
+    func test_prettyName_skipsPlatformSuffixesAndVersionDigits() {
+        XCTAssertEqual(PermissionsScanner.prettyName(fromBundleID: "ai.perplexity.mac"), "Perplexity")
+        XCTAssertEqual(PermissionsScanner.prettyName(fromBundleID: "us.zoom.xos"), "Zoom")
+        XCTAssertEqual(PermissionsScanner.prettyName(fromBundleID: "com.microsoft.teams2"), "Teams")
+        XCTAssertEqual(PermissionsScanner.prettyName(fromBundleID: "com.google.Chrome"), "Chrome")
+    }
+
+    func test_resolveAppName_namesPathClientsAfterTheirApp() {
+        let path = "/private/var/folders/xy/T/com.google.Chrome.code_sign_clone/code_sign_clone.abc/Google Chrome.app"
+        XCTAssertEqual(PermissionsScanner.resolveAppName(bundleID: path), "Google Chrome")
+        XCTAssertEqual(PermissionsScanner.resolveAppName(bundleID: "/opt/homebrew/bin/python3"), "python3")
+    }
+
     private func makeItem(service: PermissionService,
                           allowed: Bool,
                           lastModified: Date?) -> PermissionItem {

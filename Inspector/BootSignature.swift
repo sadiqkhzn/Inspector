@@ -24,18 +24,44 @@ enum BootSignatureChecker {
 
     /// Resolve the program the plist points to, then check its signature.
     static func status(forPlistProgram raw: String) -> BootSignatureStatus {
-        guard let path = resolveExecutable(from: raw) else { return .missing }
-        return status(for: URL(fileURLWithPath: path))
+        check(executable: resolveExecutable(from: raw)).status
     }
 
-    private static func status(for url: URL) -> BootSignatureStatus {
-        var staticCode: SecStaticCode?
-        let create = SecStaticCodeCreateWithPath(url as CFURL, [], &staticCode)
-        guard create == errSecSuccess, let staticCode else { return .unknown }
+    /// Signature state plus the signer's name for an executable path. Paths can
+    /// contain spaces ("Application Support"), so callers pass the plist's
+    /// `Program` or `ProgramArguments[0]` as is rather than a joined string.
+    static func check(executable path: String?) -> (status: BootSignatureStatus, signer: String?) {
+        guard let path else { return (.missing, nil) }
+        guard path.hasPrefix("/") else { return (.unknown, nil) }
+        guard FileManager.default.fileExists(atPath: path) else { return (.missing, nil) }
 
-        let check = SecStaticCodeCheckValidity(staticCode, [], nil)
-        if check == errSecSuccess { return .valid }
-        return .unsigned
+        var staticCode: SecStaticCode?
+        let create = SecStaticCodeCreateWithPath(URL(fileURLWithPath: path) as CFURL, [], &staticCode)
+        guard create == errSecSuccess, let staticCode else { return (.unknown, nil) }
+
+        guard SecStaticCodeCheckValidity(staticCode, [], nil) == errSecSuccess else { return (.unsigned, nil) }
+        return (.valid, signer(of: staticCode))
+    }
+
+    /// "Developer ID Application: Google LLC (EQHXZ8M8AV)" → "Google LLC".
+    /// Apple's own binaries carry "Software Signing". Ad hoc signatures have no
+    /// certificate, so they return nil.
+    private static func signer(of code: SecStaticCode) -> String? {
+        var info: CFDictionary?
+        guard SecCodeCopySigningInformation(code, SecCSFlags(rawValue: kSecCSSigningInformation), &info) == errSecSuccess,
+              let dict = info as? [String: Any],
+              let certificates = dict[kSecCodeInfoCertificates as String] as? [SecCertificate],
+              let leaf = certificates.first,
+              let summary = SecCertificateCopySubjectSummary(leaf) as String?
+        else { return nil }
+
+        if summary.hasSuffix("Software Signing") || summary.hasPrefix("Apple Mac OS") { return "Apple" }
+        var name = summary
+        if let colon = name.range(of: ": ") { name = String(name[colon.upperBound...]) }
+        if let team = name.range(of: " (", options: .backwards), name.hasSuffix(")") {
+            name = String(name[..<team.lowerBound])
+        }
+        return name.isEmpty ? nil : name
     }
 
     /// `Program` is a single executable path. `ProgramArguments[0]` is the

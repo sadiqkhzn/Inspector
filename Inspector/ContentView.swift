@@ -211,6 +211,14 @@ enum InspectorMode: String, CaseIterable, Identifiable {
         }
     }
 
+    var symbol: String {
+        switch self {
+        case .storage:     return "internaldrive"
+        case .boot:        return "power"
+        case .permissions: return "hand.raised"
+        }
+    }
+
     var shortcut: KeyEquivalent {
         switch self {
         case .storage:     return "1"
@@ -255,7 +263,10 @@ struct ContentView: View {
                         onQuickLook: { quickLookURL = $0.plistURL }
                     )
                 case .permissions:
-                    PermissionsView(vm: permissions)
+                    PermissionsView(
+                        vm: permissions,
+                        onOpenDetails: { if !showDetails { setDetails(visible: true) } }
+                    )
                 }
             }
             .transition(.opacity)
@@ -330,7 +341,7 @@ struct ContentView: View {
             )
         case .permissions:
             PermissionsDetailsPane(
-                item: permissions.focusedItem,
+                app: permissions.focused,
                 onClose: { setDetails(visible: false) }
             )
         }
@@ -355,17 +366,9 @@ struct ContentView: View {
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
-            Picker("View", selection: $mode) {
-                ForEach(InspectorMode.allCases) { mode in
-                    Text(mode.title).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .fixedSize()
-            .help("Storage  ⌘1 · Boot  ⌘2 · Permissions  ⌘3")
+            ModeTabs(selection: $mode)
         }
-        ToolbarItem(placement: .principal) {
+        ToolbarItem(placement: .primaryAction) {
             ToolbarSearchField(text: searchText, prompt: mode.searchPrompt, isFocused: $searchFocused)
         }
         ToolbarItemGroup(placement: .primaryAction) {
@@ -1281,8 +1284,56 @@ private struct ToolbarSearchField: View {
             }
         }
         .padding(.horizontal, 9)
-        .frame(width: 340, height: 26)
+        .frame(width: 240, height: 26)
         .modifier(SearchFieldChrome())
+    }
+}
+
+/// Storage · Boot · Permissions as compact icon-and-label tabs, the way Finder and Xcode
+/// title their toolbar segments. A custom control because a segmented `Picker` drops
+/// either the icon or the title on macOS.
+private struct ModeTabs: View {
+    @Binding var selection: InspectorMode
+    @Namespace private var namespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(InspectorMode.allCases) { mode in
+                tab(mode)
+            }
+        }
+        .padding(2)
+        .background(Capsule().fill(Color.primary.opacity(0.06)))
+        .fixedSize()
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("View")
+    }
+
+    private func tab(_ mode: InspectorMode) -> some View {
+        let isSelected = mode == selection
+        return Button {
+            withAnimation(motion(reduceMotion, .snappy(duration: 0.2))) { selection = mode }
+        } label: {
+            Label(mode.title, systemImage: mode.symbol)
+                .labelStyle(.titleAndIcon)
+                .font(.callout.weight(isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? Color.primary : Color.secondary)
+                .padding(.horizontal, 11)
+                .frame(height: 24)
+                .background {
+                    if isSelected {
+                        Capsule()
+                            .fill(Color(nsColor: .controlBackgroundColor))
+                            .shadow(color: .black.opacity(0.12), radius: 1, y: 0.5)
+                            .matchedGeometryEffect(id: "selection", in: namespace)
+                    }
+                }
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .help("\(mode.title)  ⌘\(String(mode.shortcut.character))")
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
