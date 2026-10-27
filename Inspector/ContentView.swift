@@ -190,9 +190,8 @@ struct ContentView: View {
         NavigationStack {
             content
                 .navigationTitle("Inspector")
-                .navigationSubtitle("See what macOS hides.")
                 .toolbar { toolbar }
-                .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Search")
+                .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name, path or app")
                 .inspector(isPresented: $showInspector) {
                     DetailsPane(
                         item: vm.focusedItem,

@@ -59,7 +59,7 @@ enum KnownItems {
             .safe, .devTool,
             "macOS's Python package install cache.",
             "Rebuilds automatically on next install.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Playwright browsers",
@@ -234,7 +234,7 @@ KnownItemSpec(
             .review, .devTool,
             "iOS Simulator device instances (one per simulator you've booted).",
             "You lose simulator state. Fresh simulators get recreated as needed.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Simulator Caches",
@@ -628,7 +628,7 @@ KnownItemSpec(
             .safe, .cache,
             "GitHub Desktop's log files.",
             "Nothing. New logs continue to be written as needed.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "GitKraken cache",
@@ -915,14 +915,7 @@ KnownItemSpec(
             "Signal re-downloads as needed.",
             verified: true
         ),
-        KnownItemSpec(
-            "Telegram cache",
-            "Library/Group Containers/6N38VWS5BX.ru.keepcoder.Telegram/stable/account-xxxxxxxxxxxxxxxxxxxx/postbox/media",
-            .safe, .cache,
-            "Telegram's cached media files.",
-            "Telegram re-downloads media as you view it."
-        ),
-        KnownItemSpec(
+KnownItemSpec(
             "WhatsApp cache",
             "Library/Group Containers/group.net.whatsapp.WhatsApp.shared/Media",
             .safe, .cache,
@@ -1124,7 +1117,7 @@ KnownItemSpec(
             .review, .appData,
             "Logic Pro sampler instruments (part of sound library).",
             "You lose instruments; Logic prompts to re-download. ~GB-scale download.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Garageband loops",
@@ -1146,7 +1139,7 @@ KnownItemSpec(
             .safe, .installerLeftover,
             "Microsoft Error Reporting Protocol cache.",
             "Nothing. Only used for after-the-fact crash reports.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Element cache",
@@ -1154,7 +1147,7 @@ KnownItemSpec(
             .safe, .cache,
             "Element (Matrix client) local cache.",
             "Element re-downloads as you scroll conversations.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Zulip cache",
@@ -1162,7 +1155,7 @@ KnownItemSpec(
             .safe, .cache,
             "Zulip desktop app Electron cache.",
             "Rebuilds on next launch.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Google Chrome Service Worker cache",
