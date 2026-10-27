@@ -25,7 +25,7 @@ enum PermissionService: String, CaseIterable, Hashable {
         case .accessibility:    return "Accessibility"
         case .location:         return "Location Services"
         case .fullDiskAccess:   return "Full Disk Access"
-        case .automation:       return "Automation (Apple Events)"
+        case .automation:       return "Automation"
         case .inputMonitoring:  return "Input Monitoring"
         case .contacts:         return "Contacts"
         case .calendar:         return "Calendars"
@@ -34,20 +34,57 @@ enum PermissionService: String, CaseIterable, Hashable {
         }
     }
 
+    /// One-word name for tight spots: tooltips on the glyph strip, VoiceOver lists.
+    var shortName: String {
+        switch self {
+        case .camera:           return "Camera"
+        case .microphone:       return "Microphone"
+        case .screenRecording:  return "Screen"
+        case .accessibility:    return "Accessibility"
+        case .location:         return "Location"
+        case .fullDiskAccess:   return "Full Disk"
+        case .automation:       return "Automation"
+        case .inputMonitoring:  return "Input"
+        case .contacts:         return "Contacts"
+        case .calendar:         return "Calendars"
+        case .photos:           return "Photos"
+        case .reminders:        return "Reminders"
+        }
+    }
+
+    /// The glyph System Settings › Privacy & Security uses for the same pane.
     var symbol: String {
         switch self {
-        case .camera:           return "camera"
-        case .microphone:       return "mic"
-        case .screenRecording:  return "rectangle.on.rectangle"
-        case .accessibility:    return "figure.wave"
-        case .location:         return "location"
-        case .fullDiskAccess:   return "externaldrive"
-        case .automation:       return "scribble.variable"
-        case .inputMonitoring:  return "keyboard"
-        case .contacts:         return "person.crop.circle"
+        case .camera:           return "camera.fill"
+        case .microphone:       return "mic.fill"
+        case .screenRecording:  return "rectangle.dashed.badge.record"
+        case .accessibility:    return "accessibility"
+        case .location:         return "location.fill"
+        case .fullDiskAccess:   return "externaldrive.fill"
+        case .automation:       return "gearshape.2.fill"
+        case .inputMonitoring:  return "keyboard.fill"
+        case .contacts:         return "person.crop.circle.fill"
         case .calendar:         return "calendar"
-        case .photos:           return "photo"
-        case .reminders:        return "checklist"
+        case .photos:           return "photo.fill"
+        case .reminders:        return "list.bullet"
+        }
+    }
+
+    /// One sentence on what the permission lets an app do, for the details pane.
+    var explanation: String {
+        switch self {
+        case .camera:           return "Can turn on the camera."
+        case .microphone:       return "Can listen through the microphone."
+        case .screenRecording:  return "Can see everything on your screen and record system audio."
+        case .accessibility:    return "Can control your Mac: click, type and read other apps' windows."
+        case .location:         return "Can see where your Mac is."
+        case .fullDiskAccess:   return "Can read every file, including Mail, Messages and Safari data."
+        case .automation:       return "Can send commands to other apps."
+        case .inputMonitoring:  return "Can see every key you press, in any app."
+        case .contacts:         return "Can read your contacts."
+        case .calendar:         return "Can read and change your calendars."
+        case .photos:           return "Can see your photo library."
+        case .reminders:        return "Can read and change your reminders."
         }
     }
 
