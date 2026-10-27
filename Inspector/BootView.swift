@@ -11,13 +11,20 @@ final class BootViewModel: ObservableObject {
     @Published private(set) var hasLoaded = false
     @Published var searchText: String = "" { didSet { keepFocusVisible() } }
     @Published var filter: StatusFilter = .all { didSet { keepFocusVisible() } }
+    @Published var sourceFilter: BootSource? = nil { didSet { keepFocusVisible() } }
     @Published var focusedID: BootItem.ID?
 
     var visibleItems: [BootItem] {
         let query = searchText.trimmingCharacters(in: .whitespaces)
         return items.filter { item in
-            matches(item, filter) && (query.isEmpty || item.searchableText.localizedCaseInsensitiveContains(query))
+            matches(item, filter)
+                && (sourceFilter == nil || item.source == sourceFilter)
+                && (query.isEmpty || item.searchableText.localizedCaseInsensitiveContains(query))
         }
+    }
+
+    func count(forSource source: BootSource) -> Int {
+        items.filter { $0.source == source }.count
     }
 
     var enabledCount: Int { items.filter(\.enabled).count }
@@ -121,7 +128,7 @@ struct BootContent: View {
     }
 
     private var filterBar: some View {
-        HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             PillPicker(
                 selection: $vm.filter,
                 options: [
@@ -130,18 +137,47 @@ struct BootContent: View {
                     (value: .disabled, label: "Disabled", count: vm.count(for: .disabled)),
                 ]
             )
-            Spacer(minLength: 12)
-            ViewThatFits(in: .horizontal) {
-                Text("Enabled first, then by app")
-                Text("")
+            HStack(spacing: 8) {
+                sourcePill(title: "User", source: .userAgent)
+                sourcePill(title: "System", source: .systemAgent)
+                sourcePill(title: "Daemon", source: .systemDaemon)
+                Spacer(minLength: 12)
+                ViewThatFits(in: .horizontal) {
+                    Text("Enabled first, daemons loudest")
+                    Text("")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
         .padding(.leading, 26)
         .padding(.trailing, 20)
         .padding(.top, 16)
         .padding(.bottom, 6)
+    }
+
+    private func sourcePill(title: String, source: BootSource) -> some View {
+        let selected = vm.sourceFilter == source
+        let count = vm.count(forSource: source)
+        return Button {
+            vm.sourceFilter = selected ? nil : source
+        } label: {
+            HStack(spacing: 6) {
+                Text(title).fontWeight(.medium)
+                Text("\(count)")
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+            .font(.caption)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(
+                Capsule().fill(selected ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.05))
+            )
+            .foregroundStyle(selected ? Color.accentColor : .primary)
+        }
+        .buttonStyle(.plain)
+        .help("Show only \(title) items (\(count))")
     }
 
     @ViewBuilder
@@ -317,6 +353,9 @@ private struct BootRow: View {
 
             Spacer(minLength: 12)
 
+            SourceBadge(source: item.source)
+                .fixedSize()
+
             StatusTag(item: item)
                 .frame(width: 80, alignment: .leading)
 
@@ -379,6 +418,36 @@ private struct StatusTag: View {
                 .foregroundStyle(.secondary)
         }
         .help(item.statusNote)
+    }
+}
+
+private struct SourceBadge: View {
+    let source: BootSource
+
+    private var tint: Color {
+        switch source {
+        case .userAgent:    return .secondary
+        case .systemAgent:  return .yellow
+        case .systemDaemon: return .orange
+        }
+    }
+
+    private var shortLabel: String {
+        switch source {
+        case .userAgent:    return "User"
+        case .systemAgent:  return "System"
+        case .systemDaemon: return "Daemon"
+        }
+    }
+
+    var body: some View {
+        Text(shortLabel)
+            .font(.caption2.weight(.medium))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Capsule().fill(tint.opacity(0.15)))
+            .foregroundStyle(tint)
+            .help("Lives at \(source.directory)")
     }
 }
 
