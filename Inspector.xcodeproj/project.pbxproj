@@ -14,6 +14,7 @@
 		36DF416A7E8703A0704EFFAE /* PermissionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1260D4791F9F772B3D92E8 /* PermissionItem.swift */; };
 		39E8B15816FF3102C0C167DA /* Owners.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68847A9D72FA29098128142 /* Owners.swift */; };
 		4FD24E588136F8C788BD31BD /* ByteFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C66500B466E568C2EFDFA9 /* ByteFormatter.swift */; };
+		5F6E992A770E68C95533160A /* BootSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0080AC0D155A30D372C7748 /* BootSignature.swift */; };
 		79C9EB722C8138959184702A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5A7169791F9255CD8B4F6D /* Models.swift */; };
 		95F76F689EF74F55664E46FA /* BootScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EA9EAB888BC2847772F005 /* BootScanner.swift */; };
 		96BF62E9698880DED2BBAB51 /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D322455BEFBCF49A87F57647 /* PermissionsView.swift */; };
@@ -32,6 +33,7 @@
 		8E1260D4791F9F772B3D92E8 /* PermissionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionItem.swift; sourceTree = "<group>"; };
 		A0FB26E4D572EE24D16E958A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A588B197418FE74E64694F68 /* BootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootView.swift; sourceTree = "<group>"; };
+		B0080AC0D155A30D372C7748 /* BootSignature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootSignature.swift; sourceTree = "<group>"; };
 		B68847A9D72FA29098128142 /* Owners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Owners.swift; sourceTree = "<group>"; };
 		BDE58C2302D4D68E880A1582 /* KnownItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnownItems.swift; sourceTree = "<group>"; };
 		C2EA9EAB888BC2847772F005 /* BootScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootScanner.swift; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 				A0FB26E4D572EE24D16E958A /* Assets.xcassets */,
 				8CF888034750A2AD17467415 /* BootItem.swift */,
 				C2EA9EAB888BC2847772F005 /* BootScanner.swift */,
+				B0080AC0D155A30D372C7748 /* BootSignature.swift */,
 				A588B197418FE74E64694F68 /* BootView.swift */,
 				C8C66500B466E568C2EFDFA9 /* ByteFormatter.swift */,
 				E7CF81F8EEB85C03AA644E2C /* ContentView.swift */,
@@ -155,6 +158,7 @@
 			files = (
 				D32F27D326CF2621C146C81F /* BootItem.swift in Sources */,
 				95F76F689EF74F55664E46FA /* BootScanner.swift in Sources */,
+				5F6E992A770E68C95533160A /* BootSignature.swift in Sources */,
 				1F6C964894A3F6B7B70A6E97 /* BootView.swift in Sources */,
 				4FD24E588136F8C788BD31BD /* ByteFormatter.swift in Sources */,
 				FA03737E59FCCD87A7F1FC61 /* ContentView.swift in Sources */,

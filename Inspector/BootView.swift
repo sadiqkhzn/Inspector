@@ -353,6 +353,11 @@ private struct BootRow: View {
 
             Spacer(minLength: 12)
 
+            if item.isSuspicious {
+                SuspiciousBadge()
+                    .fixedSize()
+            }
+
             SourceBadge(source: item.source)
                 .fixedSize()
 
@@ -418,6 +423,22 @@ private struct StatusTag: View {
                 .foregroundStyle(.secondary)
         }
         .help(item.statusNote)
+    }
+}
+
+private struct SuspiciousBadge: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.caption2)
+            Text("Unsigned")
+                .font(.caption2.weight(.semibold))
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(Capsule().fill(Color.red.opacity(0.15)))
+        .foregroundStyle(Color.red)
+        .help("The binary this agent runs has no valid code signature. Modern vendor agents are signed; an unsigned one on a system you didn't configure yourself is worth reviewing.")
     }
 }
 

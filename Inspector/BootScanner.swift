@@ -93,7 +93,8 @@ enum BootScanner {
             keepAlive: keepAlive,
             disabled: disabled,
             owner: inferOwner(label: label, programDisplay: display),
-            source: source
+            source: source,
+            signatureStatus: BootSignatureChecker.status(forPlistProgram: display)
         )
     }
 

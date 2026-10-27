@@ -38,10 +38,18 @@ struct BootItem: Identifiable, Hashable {
     let disabled: Bool
     let owner: String               // app name inferred from the plist contents
     let source: BootSource
+    let signatureStatus: BootSignatureStatus
 
     var id: String { plistURL.path }
 
     var enabled: Bool { !disabled }
+
+    /// True when the UI should flag this item: enabled + unsigned. The
+    /// signature-is-missing-or-broken state is the one that lets
+    /// surreptitiously-planted agents slip past.
+    var isSuspicious: Bool {
+        enabled && signatureStatus == .unsigned
+    }
 
     /// Everything the search field matches against: label, inferred app and the program it runs.
     var searchableText: String { "\(label) \(owner) \(programDisplay) \(source.label)" }
