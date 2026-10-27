@@ -103,6 +103,7 @@ private struct SectionView: View {
             Circle()
                 .fill(item.allowed ? Color.green : Color.secondary)
                 .frame(width: 8, height: 8)
+            AppIcon(bundleID: item.bundleID)
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.appName).font(.body)
                 Text(item.bundleID).font(.caption).foregroundStyle(.secondary)
@@ -114,6 +115,32 @@ private struct SectionView: View {
             }
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
+    }
+}
+
+/// Looks up and renders the installed app's icon for a bundle ID via
+/// NSWorkspace. Falls back to a neutral SF Symbol tile when the app can't
+/// be resolved (bundle isn't installed any more, isn't registered, etc.).
+private struct AppIcon: View {
+    let bundleID: String
+
+    var body: some View {
+        if let nsImage = Self.icon(for: bundleID) {
+            Image(nsImage: nsImage)
+                .resizable()
+                .frame(width: 20, height: 20)
+        } else {
+            Image(systemName: "app.dashed")
+                .foregroundStyle(.secondary)
+                .frame(width: 20, height: 20)
+        }
+    }
+
+    private static func icon(for bundleID: String) -> NSImage? {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else {
+            return nil
+        }
+        return NSWorkspace.shared.icon(forFile: url.path)
     }
 }
 
