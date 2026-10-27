@@ -18,11 +18,13 @@
 		95F76F689EF74F55664E46FA /* BootScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EA9EAB888BC2847772F005 /* BootScanner.swift */; };
 		D32F27D326CF2621C146C81F /* BootItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF888034750A2AD17467415 /* BootItem.swift */; };
 		E1DE85F1938A193EA1FB1AF0 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15439FAD68B454F99E76B3B /* Scanner.swift */; };
+		E81866ADB7267E425E792923 /* PermissionsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B054BC5FCDD4A23913E4F57 /* PermissionsScanner.swift */; };
 		FA03737E59FCCD87A7F1FC61 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF81F8EEB85C03AA644E2C /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		15855173281F9CC32947DC7F /* Inspector.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Inspector.entitlements; sourceTree = "<group>"; };
+		1B054BC5FCDD4A23913E4F57 /* PermissionsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsScanner.swift; sourceTree = "<group>"; };
 		28E2ABDC3BA1E8901B3F0CBC /* Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Inspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5004E652159EEF65AAC81E79 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8CF888034750A2AD17467415 /* BootItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootItem.swift; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 				CC5A7169791F9255CD8B4F6D /* Models.swift */,
 				B68847A9D72FA29098128142 /* Owners.swift */,
 				8E1260D4791F9F772B3D92E8 /* PermissionItem.swift */,
+				1B054BC5FCDD4A23913E4F57 /* PermissionsScanner.swift */,
 				D15439FAD68B454F99E76B3B /* Scanner.swift */,
 			);
 			path = Inspector;
@@ -157,6 +160,7 @@
 				79C9EB722C8138959184702A /* Models.swift in Sources */,
 				39E8B15816FF3102C0C167DA /* Owners.swift in Sources */,
 				36DF416A7E8703A0704EFFAE /* PermissionItem.swift in Sources */,
+				E81866ADB7267E425E792923 /* PermissionsScanner.swift in Sources */,
 				E1DE85F1938A193EA1FB1AF0 /* Scanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
