@@ -182,6 +182,7 @@ private func reveal(_ item: CleanupItem) {
 struct ContentView: View {
     @StateObject private var vm = StorageViewModel()
     @State private var showDetails = true
+    @FocusState private var searchFocused: Bool
     @State private var confirmTrash = false
     @State private var quickLookURL: URL?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -210,6 +211,8 @@ struct ContentView: View {
         .toolbar { toolbar }
         .background {
             ShortcutButton(key: "i", modifiers: [.command, .option]) { setDetails(visible: !showDetails) }
+            // Toolbar items don't register hidden shortcuts, so ⌘F lives on the window content.
+            ShortcutButton(key: "f", modifiers: .command) { searchFocused = true }
         }
         .quickLookPreview($quickLookURL)
         .confirmationDialog(
@@ -236,7 +239,7 @@ struct ContentView: View {
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            ToolbarSearchField(text: $vm.searchText)
+            ToolbarSearchField(text: $vm.searchText, isFocused: $searchFocused)
         }
         ToolbarItem(placement: .primaryAction) {
             Button {
@@ -1095,7 +1098,7 @@ private struct EmptyState: View {
 
 private struct ToolbarSearchField: View {
     @Binding var text: String
-    @FocusState private var isFocused: Bool
+    var isFocused: FocusState<Bool>.Binding
 
     var body: some View {
         HStack(spacing: 6) {
@@ -1103,10 +1106,10 @@ private struct ToolbarSearchField: View {
                 .foregroundStyle(.secondary)
             TextField("Filter by name, path or app", text: $text)
                 .textFieldStyle(.plain)
-                .focused($isFocused)
+                .focused(isFocused)
                 .onExitCommand {
                     text = ""
-                    isFocused = false
+                    isFocused.wrappedValue = false
                 }
             if text.isEmpty {
                 Text("⌘F")
@@ -1131,9 +1134,6 @@ private struct ToolbarSearchField: View {
         .padding(.horizontal, 10)
         .frame(width: 420, height: 28)
         .modifier(SearchFieldChrome())
-        .background {
-            ShortcutButton(key: "f", modifiers: .command) { isFocused = true }
-        }
     }
 }
 
