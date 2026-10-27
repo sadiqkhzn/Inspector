@@ -203,7 +203,8 @@ KnownItemSpec(
             .safe, .devTool,
             "Xcode's build intermediates and indexing data.",
             "Next Xcode build takes longer the first time, then normal. Projects are unaffected."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "iOS DeviceSupport",
             "Library/Developer/Xcode/iOS DeviceSupport",
@@ -216,7 +217,8 @@ KnownItemSpec(
             "Library/Developer/CoreSimulator/Devices",
             .review, .devTool,
             "iOS Simulator device instances (one per simulator you've booted).",
-            "You lose simulator state. Fresh simulators get recreated as needed."
+            "You lose simulator state. Fresh simulators get recreated as needed.",
+            verified: true
         ),
         KnownItemSpec(
             "Simulator Caches",
@@ -273,7 +275,8 @@ KnownItemSpec(
             .safe, .cache,
             "Arc's browser cache.",
             "Arc will rebuild it as you browse."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Slack cache",
             "Library/Application Support/Slack",
@@ -315,7 +318,8 @@ KnownItemSpec(
             .safe, .devTool,
             "Gradle's cache of downloaded dependencies and build state.",
             "Next Gradle build re-downloads dependencies, otherwise identical."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Maven local repository",
             ".m2/repository",
@@ -329,7 +333,8 @@ KnownItemSpec(
             .safe, .devTool,
             "npm's cache of downloaded packages and tarballs.",
             "npm re-downloads packages on next install. Nothing else changes."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Yarn cache",
             "Library/Caches/Yarn",
@@ -350,7 +355,8 @@ KnownItemSpec(
             .safe, .devTool,
             "Bun's cache of downloaded packages.",
             "Bun re-downloads packages on next install."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Deno cache",
             "Library/Caches/deno",
@@ -371,14 +377,16 @@ KnownItemSpec(
             .safe, .devTool,
             "Go's cache of downloaded module zips.",
             "Next 'go build' re-downloads modules. Installed binaries are untouched."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "CocoaPods cache",
             "Library/Caches/CocoaPods",
             .safe, .devTool,
             "CocoaPods' cache of downloaded pod archives and spec repos.",
             "pod install re-downloads pods. Project state untouched."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Swift Package Manager cache",
             "Library/Caches/org.swift.swiftpm",
@@ -392,7 +400,8 @@ KnownItemSpec(
             .safe, .devTool,
             "Composer's cache of downloaded packages.",
             "composer install re-downloads packages."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "RubyGems cache",
             ".gem/cache",
@@ -427,7 +436,8 @@ KnownItemSpec(
             .review, .devTool,
             "Archived builds Xcode keeps after you Archive for distribution. Includes dSYMs.",
             "You lose dSYMs for crash symbolication of past releases. Only clear if you've exported dSYMs elsewhere."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Playground devices",
             "Library/Developer/XCPGDevices",
@@ -547,7 +557,8 @@ KnownItemSpec(
             .safe, .devTool,
             "Poetry's cache of downloaded wheels and build artifacts.",
             "Poetry re-downloads packages on next install."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Conda packages",
             "miniconda3/pkgs",
@@ -631,7 +642,8 @@ KnownItemSpec(
             .safe, .cache,
             "Obsidian's app-level cache, separate from your markdown vault.",
             "Rebuilds on next launch. Your vault files are not touched."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Slack GPU cache",
             "Library/Application Support/Slack/GPUCache",
@@ -960,7 +972,8 @@ KnownItemSpec(
             .safe, .cache,
             "Google Drive File Stream's diagnostic log directory.",
             "New logs are written as needed."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "Box cache",
             "Library/Application Support/Box/Box/cache",
@@ -1065,7 +1078,8 @@ KnownItemSpec(
             .review, .cache,
             "Chrome's registered service worker storage for PWAs.",
             "PWAs may re-download assets on next open; some offline-only data lost."
-        ),
+        ,
+            verified: true),
         KnownItemSpec(
             "iPhone / iPad backups",
             "Library/Application Support/MobileSync/Backup",
