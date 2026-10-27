@@ -50,7 +50,8 @@ enum KnownItems {
             "Library/Caches/pip",
             .safe, .devTool,
             "Downloaded Python packages kept so repeat installs are instant.",
-            "Next pip install re-downloads, otherwise nothing changes."
+            "Next pip install re-downloads, otherwise nothing changes.",
+            verified: true
         ),
         KnownItemSpec(
             "Python Launcher cache",
@@ -65,14 +66,16 @@ enum KnownItems {
             "Library/Caches/ms-playwright",
             .review, .devTool,
             "Chromium, Firefox, and WebKit binaries Playwright downloaded for testing.",
-            "If you still run Playwright tests, you'll have to reinstall (~250 MB each)."
+            "If you still run Playwright tests, you'll have to reinstall (~250 MB each).",
+            verified: true
         ),
         KnownItemSpec(
             "Homebrew cache",
             "Library/Caches/Homebrew",
             .safe, .devTool,
             "Downloaded formula archives from brew install.",
-            "Nothing. Already installed packages are unaffected."
+            "Nothing. Already installed packages are unaffected.",
+            verified: true
         ),
         KnownItemSpec(
             "Docker installer leftover",
@@ -175,7 +178,8 @@ enum KnownItems {
             "Library/Caches/node-gyp",
             .safe, .devTool,
             "Headers for native Node module compilation.",
-            "Re-downloads on next native-module install."
+            "Re-downloads on next native-module install.",
+            verified: true
         ),
 KnownItemSpec(
             "Antigravity updater cache",
@@ -205,7 +209,8 @@ KnownItemSpec(
             "Library/Caches/GeoServices",
             .safe, .cache,
             "Apple Maps and location services cache.",
-            "Rebuilds on next use."
+            "Rebuilds on next use.",
+            verified: true
         ),
         KnownItemSpec(
             "Xcode DerivedData",
@@ -220,7 +225,8 @@ KnownItemSpec(
             "Library/Developer/Xcode/iOS DeviceSupport",
             .review, .devTool,
             "Debug symbols for each iOS version you've connected a device from.",
-            "Debugging on specific iOS versions will re-download symbols on next connect."
+            "Debugging on specific iOS versions will re-download symbols on next connect.",
+            verified: true
         ),
         KnownItemSpec(
             "iOS Simulators",
@@ -235,14 +241,16 @@ KnownItemSpec(
             "Library/Developer/CoreSimulator/Caches",
             .safe, .devTool,
             "Caches used by iOS Simulator runtimes.",
-            "Rebuilds on next simulator launch."
+            "Rebuilds on next simulator launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Microsoft Teams data",
             "Library/Containers/com.microsoft.teams2",
             .review, .appData,
             "Teams' sandboxed cache, logs, and session tokens tied to your organization sign-in.",
-            "You are signed out and must sign in again through SSO, including any 2FA / conditional-access prompts your workplace enforces. Local chat drafts and queued messages are lost."
+            "You are signed out and must sign in again through SSO, including any 2FA / conditional-access prompts your workplace enforces. Local chat drafts and queued messages are lost.",
+            verified: true
         ),
         KnownItemSpec(
             "Firefox cache",
@@ -265,7 +273,8 @@ KnownItemSpec(
             "Library/Containers/com.apple.Safari/Data/Library/Caches",
             .safe, .cache,
             "Safari's browser cache. Rebuilt as you browse.",
-            "Nothing. Safari rebuilds the cache on next launch."
+            "Nothing. Safari rebuilds the cache on next launch.",
+            verified: true
         ),
         KnownItemSpec(
             "Microsoft Edge cache",
@@ -343,7 +352,8 @@ KnownItemSpec(
             ".m2/repository",
             .safe, .devTool,
             "Maven's local repository of downloaded artifacts.",
-            "Next Maven build re-downloads artifacts from remote repositories."
+            "Next Maven build re-downloads artifacts from remote repositories.",
+            verified: true
         ),
         KnownItemSpec(
             "npm cache",
@@ -358,14 +368,16 @@ KnownItemSpec(
             "Library/Caches/Yarn",
             .safe, .devTool,
             "Yarn's cache of downloaded packages.",
-            "Yarn re-downloads packages on next install."
+            "Yarn re-downloads packages on next install.",
+            verified: true
         ),
         KnownItemSpec(
             "pnpm store",
             "Library/pnpm/store",
             .safe, .devTool,
             "pnpm's content-addressable store of downloaded packages.",
-            "pnpm re-downloads packages on next install."
+            "pnpm re-downloads packages on next install.",
+            verified: true
         ),
         KnownItemSpec(
             "Bun install cache",
@@ -380,14 +392,16 @@ KnownItemSpec(
             "Library/Caches/deno",
             .safe, .devTool,
             "Deno's cache of downloaded modules.",
-            "Deno re-downloads modules on next run."
+            "Deno re-downloads modules on next run.",
+            verified: true
         ),
         KnownItemSpec(
             "Cargo registry cache",
             ".cargo/registry/cache",
             .safe, .devTool,
             "Cargo's cache of downloaded crate archives.",
-            "Cargo re-downloads crates on next build. Toolchains are untouched."
+            "Cargo re-downloads crates on next build. Toolchains are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Go module cache",
@@ -410,7 +424,8 @@ KnownItemSpec(
             "Library/Caches/org.swift.swiftpm",
             .safe, .devTool,
             "SwiftPM's shared cache of fetched package repositories.",
-            "Xcode re-fetches packages on next resolve. Projects untouched."
+            "Xcode re-fetches packages on next resolve. Projects untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Composer cache",
@@ -425,14 +440,16 @@ KnownItemSpec(
             ".gem/cache",
             .safe, .devTool,
             "RubyGems' cache of downloaded gem files.",
-            "gem install re-downloads gems. Installed gems are untouched."
+            "gem install re-downloads gems. Installed gems are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "QuickLook thumbnails",
             "Library/Caches/com.apple.quicklook.thumbnailcache",
             .safe, .cache,
             "macOS QuickLook preview thumbnails.",
-            "Thumbnails regenerate on demand when you preview files."
+            "Thumbnails regenerate on demand when you preview files.",
+            verified: true
         ),
         KnownItemSpec(
             "Diagnostic reports",
@@ -447,7 +464,8 @@ KnownItemSpec(
             "Library/Logs/CrashReporter",
             .safe, .cache,
             "Historical crash logs for apps and background processes.",
-            "Nothing. Fresh crash reports continue to be generated as needed."
+            "Nothing. Fresh crash reports continue to be generated as needed.",
+            verified: true
         ),
 KnownItemSpec(
             "Xcode Archives",
@@ -462,14 +480,16 @@ KnownItemSpec(
             "Library/Developer/XCPGDevices",
             .safe, .devTool,
             "Simulator-like devices Xcode spins up for Playground execution.",
-            "Rebuilt the next time you run a Playground."
+            "Rebuilt the next time you run a Playground.",
+            verified: true
         ),
         KnownItemSpec(
             "App Store cache",
             "Library/Caches/com.apple.appstore",
             .safe, .cache,
             "App Store client's download cache and preview assets.",
-            "App Store rebuilds the cache on next launch. Downloaded apps are untouched."
+            "App Store rebuilds the cache on next launch. Downloaded apps are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "XDG cache",
@@ -573,10 +593,11 @@ KnownItemSpec(
         ),
         KnownItemSpec(
             "uv cache",
-            "Library/Caches/uv",
+            ".cache/uv",
             .safe, .devTool,
-            "Astral uv's download cache for Python packages and interpreters.",
-            "uv re-downloads what it needs on next run. Installed tools are untouched."
+            "Astral uv's XDG-style cache for Python packages, source distributions, and downloaded interpreters.",
+            "uv re-downloads what it needs on next run. Installed tools under ~/.local are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Poetry cache",
@@ -591,14 +612,16 @@ KnownItemSpec(
             "miniconda3/pkgs",
             .safe, .devTool,
             "Conda's cache of downloaded package archives before extraction into envs.",
-            "conda install re-downloads archives. Existing environments are untouched."
+            "conda install re-downloads archives. Existing environments are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Jupyter runtime",
             "Library/Jupyter/runtime",
             .safe, .devTool,
             "Jupyter's temporary runtime data (connection files, kernel IDs).",
-            "Nothing. Fresh runtime files are created when you start a kernel."
+            "Nothing. Fresh runtime files are created when you start a kernel.",
+            verified: true
         ),
         KnownItemSpec(
             "GitHub Desktop logs",
@@ -621,14 +644,16 @@ KnownItemSpec(
             ".sdkman/archives",
             .safe, .devTool,
             "SDKMAN's downloaded SDK archives (JDKs, Gradle, Kotlin, etc.) kept after extraction.",
-            "Nothing. Installed SDKs are untouched; archives are only needed for reinstall."
+            "Nothing. Installed SDKs are untouched; archives are only needed for reinstall.",
+            verified: true
         ),
         KnownItemSpec(
             "Volta cache",
             ".volta/tmp",
             .safe, .devTool,
             "Volta's temp directory for in-progress downloads and installs.",
-            "Nothing. Installed Node, npm, Yarn versions are kept."
+            "Nothing. Installed Node, npm, Yarn versions are kept.",
+            verified: true
         ),
         KnownItemSpec(
             "jenv cache",
@@ -735,7 +760,8 @@ KnownItemSpec(
             "Library/Caches/com.sublimetext.4",
             .safe, .cache,
             "Sublime Text 4's local index cache.",
-            "Sublime rebuilds indexes on next project open."
+            "Sublime rebuilds indexes on next project open.",
+            verified: true
         ),
         KnownItemSpec(
             "Nova editor cache",
@@ -806,14 +832,16 @@ KnownItemSpec(
             ".rustup/toolchains",
             .keep, .devTool,
             "Installed Rust toolchains managed by rustup. Each toolchain is a full compiler install, often 500 MB to 1.5 GB.",
-            "You lose every installed Rust toolchain. rustup can reinstall them, but each is a sizeable download. Only clear if you no longer use Rust."
+            "You lose every installed Rust toolchain. rustup can reinstall them, but each is a sizeable download. Only clear if you no longer use Rust.",
+            verified: true
         ),
         KnownItemSpec(
             "nvm Node versions",
             ".nvm/versions/node",
             .keep, .devTool,
             "Node versions installed via nvm.",
-            "You lose installed Node versions until re-installed via nvm."
+            "You lose installed Node versions until re-installed via nvm.",
+            verified: true
         ),
         KnownItemSpec(
             "fnm Node versions",
@@ -827,7 +855,8 @@ KnownItemSpec(
             ".pyenv/versions",
             .keep, .devTool,
             "Python versions installed via pyenv.",
-            "You lose installed Python versions until re-built."
+            "You lose installed Python versions until re-built.",
+            verified: true
         ),
         KnownItemSpec(
             "pipx venvs",
@@ -954,28 +983,32 @@ KnownItemSpec(
             ".config/gcloud/logs",
             .safe, .devTool,
             "Google Cloud SDK diagnostic logs.",
-            "New logs are written as needed."
+            "New logs are written as needed.",
+            verified: true
         ),
         KnownItemSpec(
             "AWS CLI cache",
             ".aws/cli/cache",
             .review, .devTool,
             "AWS CLI's SSO/STS token cache. Holds temporary credentials from recent sign-ins.",
-            "Any in-flight CLI script using these cached credentials fails until you re-authenticate (often via SSO browser flow). Clear when idle; avoid during long-running scripts."
+            "Any in-flight CLI script using these cached credentials fails until you re-authenticate (often via SSO browser flow). Clear when idle; avoid during long-running scripts.",
+            verified: true
         ),
         KnownItemSpec(
             "Terraform plugin cache",
             ".terraform.d/plugin-cache",
             .safe, .devTool,
             "Terraform's shared provider plugin cache.",
-            "Terraform re-downloads providers on next init."
+            "Terraform re-downloads providers on next init.",
+            verified: true
         ),
         KnownItemSpec(
             "kubectl cache",
             ".kube/cache",
             .safe, .devTool,
             "kubectl's HTTP discovery cache for Kubernetes API resources.",
-            "kubectl rebuilds discovery on next command."
+            "kubectl rebuilds discovery on next command.",
+            verified: true
         ),
         KnownItemSpec(
             "Minikube data",

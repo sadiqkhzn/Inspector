@@ -11,6 +11,34 @@ these sources before an entry is marked `verified: true`.
 | [Homebrew casks `zap trash:` stanzas](https://docs.brew.sh/Cask-Cookbook) | 4,700+ community-maintained casks declare the exact paths each app leaves behind. Validated per PR by the cask author who actually uses the app. | App-owned paths — `Library/Caches/<bundle>`, `Library/Application Support/<app>`, `Library/Containers/<bundle>`, etc. Covers 60+ of our entries directly. |
 | [Chromium User Data Directory](https://chromium.googlesource.com/chromium/src/+/refs/heads/master/docs/user_data_dir.md) | Official Google / Chromium project documentation. | Chrome, Chrome Canary, Chrome Beta, Chrome Dev, Chromium — all variants and the User Data layout under them. |
 | [JetBrains IDE directories](https://www.jetbrains.com/help/idea/directories-used-by-the-ide-to-store-settings-caches-plugins-and-logs.html) | Official JetBrains support article. Documents exact per-product paths for caches / plugins / config / logs. | IntelliJ, PyCharm, GoLand, WebStorm, CLion, PhpStorm, RubyMine caches and logs. |
+| Each dev tool's own documentation | The tool's own docs are the ground truth for its default cache location. We only trust the *default* path — if a tool lets the user move the cache via an env variable (CARGO_HOME, DENO_DIR, UV_CACHE_DIR, etc.), we document the default and note that an override is possible. | Dev tool caches whose behaviour is tool-defined, not Homebrew-defined. See per-tool sources below. |
+
+### Dev tool documentation sources
+
+| Tool | Source | What was verified |
+|------|--------|-------------------|
+| pip | [pip.pypa.io caching docs](https://pip.pypa.io/en/stable/topics/caching/) | `~/Library/Caches/pip` on macOS (pre-26.2; now respects `XDG_CACHE_HOME`). |
+| uv | [docs.astral.sh/uv/reference/storage](https://docs.astral.sh/uv/reference/storage/) | Macos default is `~/.cache/uv` (XDG). An earlier doc revision wrongly said `~/Library/Caches/uv`; we had that wrong path in the catalog and fixed it. |
+| Deno | [docs.deno.com installation guide](https://docs.deno.com/runtime/getting_started/installation/) | `$HOME/Library/Caches/deno`, overridable via `DENO_DIR`. |
+| Cargo | [Rust Cargo Home guide](https://doc.rust-lang.org/cargo/guide/cargo-home.html) | `$HOME/.cargo/registry/cache` is the archive cache subpath. |
+| Yarn Classic | Yarn 1 cache management (mirrored) | macOS default `~/Library/Caches/yarn`. |
+| Playwright | [playwright.dev installation](https://playwright.dev/docs/browsers) | `~/Library/Caches/ms-playwright`, overridable via `PLAYWRIGHT_BROWSERS_PATH`. |
+| Homebrew | [docs.brew.sh](https://docs.brew.sh/Manpage) | `$(brew --cache)` = `~/Library/Caches/Homebrew`. |
+| Maven | maven.apache.org / `~/.m2/settings.xml` | `~/.m2/repository` default local repo. |
+| pnpm | [pnpm.io docs](https://pnpm.io/npmrc#store-dir) | macOS default `~/Library/pnpm`. |
+| Terraform | HashiCorp CLI config docs (`plugin_cache_dir`) | `TF_PLUGIN_CACHE_DIR`; `~/.terraform.d/plugin-cache` is the community convention. |
+| kubectl | kubernetes.io CLI docs | `~/.kube/cache` discovery cache. |
+| AWS CLI | AWS re:Post (`sts-iam-token-expired`) + CLI reference | `~/.aws/cli/cache` holds AssumeRole / SSO cached credentials. |
+| gcloud SDK | cloud.google.com/sdk docs | `~/.config/gcloud/logs` for diagnostic logs. |
+| rustup | rust-lang.github.io/rustup docs | `~/.rustup/toolchains` installed toolchains. |
+| Conda | docs.conda.io config | `pkgs_dirs` default `~/<miniconda\|anaconda>/pkgs`. |
+| Jupyter | jupyter.readthedocs.io data files | `~/Library/Jupyter/runtime`. |
+| SDKMAN | sdkman.io docs | `~/.sdkman/archives` cached SDK downloads. |
+| Volta | docs.volta.sh | `~/.volta/tmp` for in-progress downloads. |
+| node-gyp | github.com/nodejs/node-gyp | `~/Library/Caches/node-gyp` on macOS. |
+| nvm | github.com/nvm-sh/nvm readme | `$NVM_DIR/versions/node` default install location. |
+| pyenv | github.com/pyenv/pyenv manpage | `$PYENV_ROOT/versions` default install location. |
+| Apple frameworks (Xcode, CoreSimulator, QuickLook, CrashReporter, GeoServices, App Store client) | Apple developer documentation / standard framework conventions | Paths under `Library/Developer/*` and `Library/Caches/com.apple.*`. |
 
 ## Secondary sources
 
