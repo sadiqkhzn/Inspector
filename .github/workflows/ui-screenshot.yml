@@ -1,0 +1,63 @@
+name: UI screenshot
+
+on:
+  push:
+    branches: [feat/unified-storage-boot-nav]
+
+jobs:
+  screenshot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || status=$?
+          grep -E "error:|warning: .*(ContentView|BootView|BootItem|InspectorApp)\.swift|BUILD" build.log || true
+          exit ${status:-0}
+      - name: Seed sample LaunchAgents
+        run: |
+          d="$HOME/Library/LaunchAgents"; mkdir -p "$d"
+          plutil -create xml1 "$d/com.google.keystone.agent.plist"
+          plutil -insert Label -string com.google.keystone.agent "$d/com.google.keystone.agent.plist"
+          plutil -insert ProgramArguments -json '["/Users/runner/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle/Contents/Resources/GoogleSoftwareUpdateAgent.app/Contents/MacOS/GoogleSoftwareUpdateAgent","-runMode","ifneeded"]' "$d/com.google.keystone.agent.plist"
+          plutil -insert RunAtLoad -bool true "$d/com.google.keystone.agent.plist"
+          plutil -create xml1 "$d/com.docker.helper.plist"
+          plutil -insert Label -string com.docker.helper "$d/com.docker.helper.plist"
+          plutil -insert Program -string "/Applications/Docker.app/Contents/Library/LaunchServices/com.docker.helper" "$d/com.docker.helper.plist"
+          plutil -insert KeepAlive -bool true "$d/com.docker.helper.plist"
+          plutil -create xml1 "$d/com.spotify.webhelper.plist"
+          plutil -insert Label -string com.spotify.webhelper "$d/com.spotify.webhelper.plist"
+          plutil -insert Program -string "/Applications/Spotify.app/Contents/MacOS/SpotifyWebHelper" "$d/com.spotify.webhelper.plist"
+          plutil -insert RunAtLoad -bool true "$d/com.spotify.webhelper.plist"
+          plutil -insert Disabled -bool true "$d/com.spotify.webhelper.plist"
+          ls -la "$d"
+      - name: Launch and capture
+        run: |
+          shot() {
+            screencapture -x "$1.png"
+            sips -Z 1100 -s format jpeg -s formatOptions 50 "$1.png" --out "$1.jpg" >/dev/null
+            echo "BEGIN_SHOT $1"
+            base64 -i "$1.jpg" | tr -d '\n' | fold -w 8000
+            echo
+            echo "END_SHOT"
+          }
+          key() { osascript -e "tell application \"System Events\" to $1" || true; sleep 2; }
+          open build/Build/Products/Debug/Inspector.app
+          sleep 25
+          osascript -e 'tell application "Inspector" to activate' || true
+          sleep 2
+          shot storage
+          key 'keystroke "2" using {command down}'
+          shot boot
+          key 'keystroke "i" using {command down, option down}'
+          shot bootdetails
+          key 'keystroke "f" using {command down}'
+          key 'keystroke "google"'
+          shot bootsearch
+          key 'keystroke "1" using {command down}'
+          shot backtostorage

@@ -174,7 +174,7 @@ private extension SafetyLevel {
     }
 }
 
-private func motion(_ reduceMotion: Bool, _ animation: Animation = .smooth(duration: 0.22)) -> Animation? {
+func motion(_ reduceMotion: Bool, _ animation: Animation = .smooth(duration: 0.22)) -> Animation? {
     reduceMotion ? nil : animation
 }
 
@@ -189,8 +189,39 @@ private func reveal(_ item: CleanupItem) {
 
 // MARK: - Root
 
+/// The domains Inspector shows, as sibling panels inside one window.
+enum InspectorMode: String, CaseIterable, Identifiable {
+    case storage
+    case boot
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .storage: return "Storage"
+        case .boot:    return "Boot"
+        }
+    }
+
+    var shortcut: KeyEquivalent {
+        switch self {
+        case .storage: return "1"
+        case .boot:    return "2"
+        }
+    }
+
+    var searchPrompt: String {
+        switch self {
+        case .storage: return "Filter by name, path or app"
+        case .boot:    return "Filter by label, app or program"
+        }
+    }
+}
+
 struct ContentView: View {
     @StateObject private var vm = StorageViewModel()
+    @StateObject private var boot = BootViewModel()
+    @SceneStorage("mode") private var mode: InspectorMode = .storage
     // Closed until the user asks for it: clicking a row, the toolbar toggle, or ⌥⌘I.
     @State private var showDetails = false
     @FocusState private var searchFocused: Bool
@@ -202,21 +233,26 @@ struct ContentView: View {
         // A plain column rather than `.inspector`, which claims the trailing end of the
         // toolbar; this keeps one full-width toolbar above both the list and the details.
         HStack(spacing: 0) {
-            content
+            Group {
+                switch mode {
+                case .storage:
+                    content
+                case .boot:
+                    BootContent(
+                        vm: boot,
+                        onOpenDetails: { if !showDetails { setDetails(visible: true) } },
+                        onQuickLook: { quickLookURL = $0.plistURL }
+                    )
+                }
+            }
+            .transition(.opacity)
             if showDetails {
                 Divider()
-                DetailsPane(
-                    item: vm.focusedItem,
-                    foundBytes: vm.foundBytes,
-                    onToggle: { if let id = vm.focusedID { withAnimation(motion(reduceMotion)) { vm.toggle(id) } } },
-                    onReveal: { if let item = vm.focusedItem { reveal(item) } },
-                    onQuickLook: { quickLookURL = vm.focusedItem?.url },
-                    onClose: { setDetails(visible: false) }
-                )
-                .frame(width: 320)
-                .frame(maxHeight: .infinity, alignment: .top)
-                .background(Color(nsColor: .windowBackgroundColor))
-                .transition(.move(edge: .trailing))
+                detailsPane
+                    .frame(width: 320)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .background(Color(nsColor: .windowBackgroundColor))
+                    .transition(.move(edge: .trailing))
             }
         }
         .navigationTitle("Inspector")
@@ -225,6 +261,8 @@ struct ContentView: View {
             ShortcutButton(key: "i", modifiers: [.command, .option]) { setDetails(visible: !showDetails) }
         }
         .focusedSceneValue(\.focusSearch, focusSearch)
+        .focusedSceneValue(\.inspectorMode, $mode)
+        .animation(motion(reduceMotion, .easeOut(duration: 0.15)), value: mode)
         .quickLookPreview($quickLookURL)
         .confirmationDialog(
             "Move \(vm.selectedItems.count) items to the Trash?",
@@ -244,8 +282,14 @@ struct ContentView: View {
         } message: {
             Text(vm.errorMessage ?? "")
         }
-        .task { await vm.refresh() }
         .task {
+            boot.load()
+            await vm.refresh()
+        }
+        // The disk numbers only appear in Storage, so the 1-second poll runs only there.
+        .task(id: mode) {
+            guard mode == .storage else { return }
+            vm.pollDiskOnly()
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
                 vm.pollDiskOnly()
@@ -253,16 +297,62 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
+    private var detailsPane: some View {
+        switch mode {
+        case .storage:
+            DetailsPane(
+                item: vm.focusedItem,
+                foundBytes: vm.foundBytes,
+                onToggle: { if let id = vm.focusedID { withAnimation(motion(reduceMotion)) { vm.toggle(id) } } },
+                onReveal: { if let item = vm.focusedItem { reveal(item) } },
+                onQuickLook: { quickLookURL = vm.focusedItem?.url },
+                onClose: { setDetails(visible: false) }
+            )
+        case .boot:
+            BootDetailsPane(
+                item: boot.focusedItem,
+                onQuickLook: { quickLookURL = boot.focusedItem?.plistURL },
+                onClose: { setDetails(visible: false) }
+            )
+        }
+    }
+
+    private var searchText: Binding<String> {
+        switch mode {
+        case .storage: return $vm.searchText
+        case .boot:    return $boot.searchText
+        }
+    }
+
+    private func rescan() {
+        switch mode {
+        case .storage: Task { await vm.refresh() }
+        case .boot:    withAnimation(motion(reduceMotion)) { boot.load() }
+        }
+    }
+
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .navigation) {
+            Picker("View", selection: $mode) {
+                ForEach(InspectorMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .fixedSize()
+            .help("Storage  ⌘1 · Boot  ⌘2")
+        }
         ToolbarItem(placement: .principal) {
-            ToolbarSearchField(text: $vm.searchText, isFocused: $searchFocused)
+            ToolbarSearchField(text: searchText, prompt: mode.searchPrompt, isFocused: $searchFocused)
         }
         ToolbarItemGroup(placement: .primaryAction) {
             Button {
-                Task { await vm.refresh() }
+                rescan()
             } label: {
-                if vm.isScanning {
+                if mode == .storage && vm.isScanning {
                     ProgressView().controlSize(.small)
                 } else {
                     Label("Rescan", systemImage: "arrow.clockwise")
@@ -270,7 +360,7 @@ struct ContentView: View {
             }
             .help("Rescan  ⌘R")
             .keyboardShortcut("r")
-            .disabled(vm.isScanning)
+            .disabled(mode == .storage && vm.isScanning)
 
             Button {
                 setDetails(visible: !showDetails)
@@ -320,7 +410,10 @@ struct ContentView: View {
 
     private var filterBar: some View {
         HStack(spacing: 12) {
-            TierPicker(selection: $vm.tierFilter, counts: TierPicker.options.map { vm.count(for: $0) })
+            PillPicker(
+                selection: $vm.tierFilter,
+                options: ([nil] + SafetyLevel.allCases.map { Optional($0) }).map { (value: $0, label: $0?.label ?? "All", count: vm.count(for: $0)) }
+            )
             Spacer(minLength: 12)
             ViewThatFits(in: .horizontal) {
                 Text(vm.tierFilter == nil ? "Safest first, then largest" : "Largest first")
@@ -525,7 +618,7 @@ private struct CapacityBar: View {
     }
 }
 
-private struct LegendDot: View {
+struct LegendDot: View {
     let color: Color
     let text: String
 
@@ -540,26 +633,25 @@ private struct LegendDot: View {
     }
 }
 
-// MARK: - Tier picker
+// MARK: - Pill picker
 
-private struct TierPicker: View {
-    static let options: [SafetyLevel?] = [nil, .safe, .review, .keep]
-
-    @Binding var selection: SafetyLevel?
-    let counts: [Int]
+/// Segmented filter used by every mode: one pill slides between the options.
+struct PillPicker<Value: Hashable>: View {
+    @Binding var selection: Value
+    let options: [(value: Value, label: String, count: Int)]
     @Namespace private var namespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(Array(Self.options.enumerated()), id: \.offset) { index, option in
-                let isOn = option == selection
+            ForEach(Array(options.enumerated()), id: \.offset) { _, option in
+                let isOn = option.value == selection
                 Button {
-                    withAnimation(motion(reduceMotion)) { selection = option }
+                    withAnimation(motion(reduceMotion)) { selection = option.value }
                 } label: {
                     HStack(spacing: 5) {
-                        Text(option?.label ?? "All")
-                        Text("\(counts[index])")
+                        Text(option.label)
+                        Text("\(option.count)")
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                             .monospacedDigit()
@@ -571,7 +663,6 @@ private struct TierPicker: View {
                     .frame(height: 26)
                     .background {
                         if isOn {
-                            // One pill shared across segments slides between them instead of cross-fading.
                             Capsule()
                                 .fill(Color(nsColor: .controlBackgroundColor))
                                 .shadow(color: .black.opacity(0.12), radius: 1, y: 1)
@@ -815,25 +906,7 @@ private struct DetailsPane: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Details")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 20, height: 20)
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .help("Hide details  ⌥⌘I")
-                .accessibilityLabel("Hide details")
-            }
-            .padding(.horizontal, 16)
-            .frame(height: 32)
-            Divider()
+            DetailsHeader(onClose: onClose)
             itemDetails
         }
     }
@@ -969,6 +1042,34 @@ private struct DetailsPane: View {
             }
         }
         .buttonBorderShape(.capsule)
+    }
+}
+
+struct DetailsHeader: View {
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Details")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20, height: 20)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help("Hide details  ⌥⌘I")
+                .accessibilityLabel("Hide details")
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 32)
+            Divider()
+        }
     }
 }
 
@@ -1121,6 +1222,7 @@ private struct EmptyState: View {
 
 private struct ToolbarSearchField: View {
     @Binding var text: String
+    let prompt: String
     var isFocused: FocusState<Bool>.Binding
 
     var body: some View {
@@ -1128,7 +1230,7 @@ private struct ToolbarSearchField: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
-            TextField("Filter by name, path or app", text: $text)
+            TextField(prompt, text: $text)
                 .textFieldStyle(.plain)
                 .font(.callout)
                 .focused(isFocused)
