@@ -857,6 +857,17 @@ private struct DetailsPane: View {
                         .font(.system(.caption, design: .monospaced))
                         .textSelection(.enabled)
                 }
+                GridRow {
+                    Text("Source").foregroundStyle(.secondary)
+                    HStack(spacing: 6) {
+                        Image(systemName: item.verified ? "checkmark.seal.fill" : "questionmark.circle")
+                            .foregroundStyle(item.verified ? Color.green : Color.secondary)
+                        Text(item.verified ? "Cross-referenced" : "First-draft (unverified)")
+                    }
+                    .help(item.verified
+                        ? "Path, tier, and effect checked against a source listed in references/sources.md."
+                        : "Added from memory. Behavior not yet cross-referenced against a primary source.")
+                }
             }
             .font(.callout)
         }

@@ -8,6 +8,11 @@ struct KnownItemSpec {
     let whatItIs: String
     let whatHappensIfRemoved: String
     let minBytesToShow: Int64
+    /// True when the path, tier, and effect have been cross-referenced against
+    /// at least one source listed in references/sources.md. False means the
+    /// entry was added from memory and has not been systematically verified
+    /// yet.
+    let verified: Bool
 
     init(
         _ name: String,
@@ -16,7 +21,8 @@ struct KnownItemSpec {
         _ category: ScanCategory,
         _ whatItIs: String,
         _ whatHappensIfRemoved: String,
-        minBytesToShow: Int64 = 50 * 1024 * 1024
+        minBytesToShow: Int64 = 50 * 1024 * 1024,
+        verified: Bool = false
     ) {
         self.name = name
         self.relativePath = relativePath
@@ -25,6 +31,7 @@ struct KnownItemSpec {
         self.whatItIs = whatItIs
         self.whatHappensIfRemoved = whatHappensIfRemoved
         self.minBytesToShow = minBytesToShow
+        self.verified = verified
     }
 }
 
@@ -106,35 +113,40 @@ enum KnownItems {
             "Library/Application Support/Steam/appcache",
             .safe, .cache,
             "Steam client's HTTP response and asset cache (not game files).",
-            "Steam rebuilds the cache on next launch. Installed games are untouched."
+            "Steam rebuilds the cache on next launch. Installed games are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Steam depot cache",
             "Library/Application Support/Steam/depotcache",
             .safe, .cache,
             "Cached depot manifests used during game installs and updates.",
-            "Next install or update rebuilds the manifests. Installed games are untouched."
+            "Next install or update rebuilds the manifests. Installed games are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Steam logs",
             "Library/Application Support/Steam/logs",
             .safe, .cache,
             "Steam client's diagnostic logs.",
-            "Nothing. New logs are written as needed."
+            "Nothing. New logs are written as needed.",
+            verified: true
         ),
         KnownItemSpec(
             "Steam shader cache",
             "Library/Application Support/Steam/steamapps/shadercache",
             .safe, .cache,
             "Pre-compiled shaders Steam cached for installed games.",
-            "First launch of each affected game recompiles shaders (one-off slower start). Game files are untouched."
+            "First launch of each affected game recompiles shaders (one-off slower start). Game files are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Steam partial downloads",
             "Library/Application Support/Steam/steamapps/downloading",
             .safe, .cache,
             "Partially downloaded game files from interrupted installs or updates.",
-            "Any in-progress Steam downloads restart from scratch. Completed installs are untouched."
+            "Any in-progress Steam downloads restart from scratch. Completed installs are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "VS Code cached data",
@@ -442,7 +454,8 @@ KnownItemSpec(
             "Dropbox/.dropbox.cache",
             .safe, .cache,
             "Dropbox client's local sync cache — kept inside your Dropbox folder, not in ~/Library.",
-            "Dropbox rebuilds the cache as it continues syncing. Files on disk and in the cloud are untouched."
+            "Dropbox rebuilds the cache as it continues syncing. Files on disk and in the cloud are untouched.",
+            verified: true
         ),
         KnownItemSpec(
             "Microsoft AutoUpdate cache",
@@ -1058,56 +1071,56 @@ KnownItemSpec(
             "Library/Application Support/MobileSync/Backup",
             .keep, .appData,
             "Local Finder / iTunes device backups for connected iPhones and iPads.",
-            "You lose every local device backup. If a device is lost or wiped, there is no recovery from this Mac. Keep unless you have an iCloud backup you trust."
+            "You lose every local device backup. If a device is lost or wiped, there is no recovery from this Mac. Keep unless you have an iCloud backup you trust.",
+            verified: true
         ),
         KnownItemSpec(
             "CoreSimulator logs",
             "Library/Logs/CoreSimulator",
             .safe, .devTool,
             "Diagnostic logs from the iOS Simulator runtime.",
-            "Nothing. New logs are written on next simulator run."
+            "Nothing. New logs are written on next simulator run.",
+            verified: true
         ),
         KnownItemSpec(
             "JetBrains logs",
             "Library/Logs/JetBrains",
             .safe, .devTool,
             "Per-product diagnostic logs from JetBrains IDEs.",
-            "Nothing. New logs are written as needed."
+            "Nothing. New logs are written as needed.",
+            verified: true
         ),
         KnownItemSpec(
             "Mail diagnostic logs",
             "Library/Containers/com.apple.mail/Data/Library/Logs/Mail",
             .safe, .cache,
             "Apple Mail's diagnostic logs inside its container.",
-            "Nothing. Only useful for debugging Mail problems."
+            "Nothing. Only useful for debugging Mail problems.",
+            verified: true
         ),
         KnownItemSpec(
             "Conan 2 package cache",
             ".conan2/p",
             .safe, .devTool,
             "Conan 2 package manager's cache of downloaded binaries and recipes.",
-            "conan install re-downloads packages on next use. Nothing else changes."
+            "conan install re-downloads packages on next use. Nothing else changes.",
+            verified: true
         ),
         KnownItemSpec(
-            "NuGet packages cache",
+            "NuGet packages",
             ".nuget/packages",
-            .safe, .devTool,
-            "NuGet's cache of downloaded .NET packages.",
-            "dotnet restore re-downloads packages on next build."
+            .review, .devTool,
+            "NuGet's local store of downloaded .NET packages. Shared across every project on this Mac that resolves against this folder.",
+            "dotnet restore re-downloads packages for every project the next time you build. Can be a large re-download on networks with slow upstream.",
+            verified: true
         ),
         KnownItemSpec(
             "Adobe media cache",
             "Library/Application Support/Adobe/Common/Media Cache Files",
             .safe, .cache,
             "Shared media cache files generated by Premiere Pro, After Effects, Audition, and other Adobe apps.",
-            "Adobe apps regenerate the cache as you open projects. Project files themselves are untouched."
-        ),
-        KnownItemSpec(
-            "Adobe peak files",
-            "Library/Application Support/Adobe/Common/Peak Files",
-            .safe, .cache,
-            "Audio peak files Adobe apps generate for waveform rendering.",
-            "Adobe apps regenerate peak files when audio clips are reopened."
+            "Adobe apps regenerate the cache as you open projects. Project files themselves are untouched.",
+            verified: true
         ),
     ]
 }
