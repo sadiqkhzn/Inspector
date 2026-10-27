@@ -211,9 +211,8 @@ struct ContentView: View {
         .toolbar { toolbar }
         .background {
             ShortcutButton(key: "i", modifiers: [.command, .option]) { setDetails(visible: !showDetails) }
-            // Toolbar items don't register hidden shortcuts, so ⌘F lives on the window content.
-            ShortcutButton(key: "f", modifiers: .command) { searchFocused = true }
         }
+        .focusedSceneValue(\.focusSearch, focusSearch)
         .quickLookPreview($quickLookURL)
         .confirmationDialog(
             "Move \(vm.selectedItems.count) items to the Trash?",
@@ -260,6 +259,12 @@ struct ContentView: View {
             .keyboardShortcut("r")
             .disabled(vm.isScanning)
         }
+    }
+
+    private func focusSearch() {
+        searchFocused = true
+        // Focus can't always cross into a toolbar item, so also hand the field first responder directly.
+        DispatchQueue.main.async { focusToolbarTextField() }
     }
 
     private func setDetails(visible: Bool) {
@@ -1161,6 +1166,24 @@ private struct SearchFieldChrome: ViewModifier {
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
             )
+    }
+}
+
+@MainActor
+private func focusToolbarTextField() {
+    guard let window = NSApp.keyWindow ?? NSApp.mainWindow else { return }
+    func editableField(in view: NSView) -> NSTextField? {
+        if let field = view as? NSTextField, field.isEditable { return field }
+        for subview in view.subviews {
+            if let field = editableField(in: subview) { return field }
+        }
+        return nil
+    }
+    for item in window.toolbar?.items ?? [] {
+        if let view = item.view, let field = editableField(in: view) {
+            window.makeFirstResponder(field)
+            return
+        }
     }
 }
 
