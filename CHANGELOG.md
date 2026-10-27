@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- App icon: a loupe over three frosted layers (storage, startup, privacy), in every macOS size, also shown in the README.
 - Storage view with safety-tiered catalog of known caches and leftovers.
 - Disk snapshot in header.
 - Each item shows the icon of the app it belongs to, taken from the installed app.

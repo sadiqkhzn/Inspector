@@ -1,0 +1,38 @@
+name: UI screenshot
+
+on:
+  push:
+    branches: [feat/app-icon]
+
+jobs:
+  screenshot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || status=$?
+          grep -E "error:|warning: .*(xcassets|AppIcon|actool)|BUILD" build.log || true
+          exit ${status:-0}
+      - name: Inspect bundle
+        run: |
+          app=build/Build/Products/Debug/Inspector.app
+          echo "ICONCHECK resources:"; ls "$app/Contents/Resources"
+          echo "ICONCHECK plist:"; plutil -p "$app/Contents/Info.plist" | grep -i icon || echo "no icon keys"
+      - name: Launch and capture
+        run: |
+          open build/Build/Products/Debug/Inspector.app
+          sleep 20
+          osascript -e 'tell application "Inspector" to activate' || true
+          sleep 2
+          screencapture -x dock.png
+          sips -Z 1100 -s format jpeg -s formatOptions 55 dock.png --out dock.jpg >/dev/null
+          echo "BEGIN_SHOT dock"
+          base64 -i dock.jpg | tr -d '\n' | fold -w 8000
+          echo
+          echo "END_SHOT"

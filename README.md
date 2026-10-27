@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/icon.png" width="128" height="128" alt="Inspector app icon">
+</p>
+
 # Inspector
 
 **See what macOS hides.**
