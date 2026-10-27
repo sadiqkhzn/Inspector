@@ -39,6 +39,14 @@ struct BootItem: Identifiable, Hashable {
     let owner: String               // app name inferred from the plist contents
     let source: BootSource
     let signatureStatus: BootSignatureStatus
+    /// The executable launchd starts: `Program`, else `ProgramArguments[0]`.
+    var executablePath: String? = nil
+    /// Who signed that executable, from its certificate ("Google LLC"). Nil when unsigned or ad hoc.
+    var signer: String? = nil
+    /// `StartInterval`, in seconds.
+    var startInterval: Int? = nil
+    /// `StartCalendarInterval`, already in words ("Daily at 3:00").
+    var calendarSummary: String? = nil
 
     var id: String { plistURL.path }
 

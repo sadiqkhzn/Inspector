@@ -126,6 +126,15 @@ final class BootScannerTests: XCTestCase {
         XCTAssertFalse(valid.isSuspicious, "A properly signed job is fine.")
     }
 
+    // MARK: - Schedule
+
+    func test_calendarSummary_inWords() {
+        XCTAssertEqual(BootScanner.calendarSummary(["Hour": 3, "Minute": 0]), "Daily at 3:00")
+        XCTAssertEqual(BootScanner.calendarSummary(["Weekday": 1, "Hour": 9, "Minute": 30]), "Mondays at 9:30")
+        XCTAssertEqual(BootScanner.calendarSummary(["Minute": 15]), "Hourly at :15")
+        XCTAssertNil(BootScanner.calendarSummary(nil))
+    }
+
     // MARK: - Fixtures
 
     private func makeTempDir() throws -> URL {

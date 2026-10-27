@@ -23,6 +23,17 @@ final class BootViewModel: ObservableObject {
         }
     }
 
+    /// Visible items grouped by developer, in the order the scanner ranked them.
+    var groups: [BootGroup] {
+        var order: [String] = []
+        var byOwner: [String: [BootItem]] = [:]
+        for item in visibleItems {
+            if byOwner[item.owner] == nil { order.append(item.owner) }
+            byOwner[item.owner, default: []].append(item)
+        }
+        return order.map { BootGroup(owner: $0, items: byOwner[$0] ?? []) }
+    }
+
     func count(forSource source: BootSource) -> Int {
         items.filter { $0.source == source }.count
     }
@@ -34,12 +45,12 @@ final class BootViewModel: ObservableObject {
 
     func load() {
         items = BootScanner.scan()
-        if focusedItem == nil { focusedID = visibleItems.first?.id }
+        if focusedItem == nil { focusedID = groups.first?.items.first?.id }
         hasLoaded = true
     }
 
     func moveFocus(by offset: Int) {
-        let ids = visibleItems.map(\.id)
+        let ids = groups.flatMap(\.items).map(\.id)
         guard !ids.isEmpty else { return }
         guard let current = focusedID, let index = ids.firstIndex(of: current) else {
             focusedID = ids.first
@@ -51,7 +62,7 @@ final class BootViewModel: ObservableObject {
     /// When a search or filter hides the focused agent, the details pane follows the first visible one.
     private func keepFocusVisible() {
         let visible = visibleItems
-        if !visible.contains(where: { $0.id == focusedID }) { focusedID = visible.first?.id }
+        if !visible.contains(where: { $0.id == focusedID }) { focusedID = groups.first?.items.first?.id }
     }
 
     private func matches(_ item: BootItem, _ filter: StatusFilter) -> Bool {
@@ -73,15 +84,73 @@ private extension BootItem {
     var trigger: String {
         if disabled { return "Off" }
         if keepAlive { return "Always on" }
-        if runAtLoad { return "At login" }
-        return "On demand"
+        if let interval = startInterval, interval > 0 { return Self.every(interval) }
+        if let calendarSummary { return calendarSummary }
+        if runAtLoad { return source == .systemDaemon ? "At startup" : "At login" }
+        return "When needed"
     }
 
     var statusNote: String {
         if disabled { return "Turned off in its plist (Disabled = true). launchd won't start it." }
-        if keepAlive { return "Starts with your session, and launchd restarts it whenever it quits." }
-        if runAtLoad { return "Starts automatically when you log in." }
-        return "Registered with launchd, but only starts when something asks for it."
+        if keepAlive { return "Starts with your Mac and launchd restarts it whenever it quits." }
+        if let interval = startInterval, interval > 0 { return "launchd runs it \(Self.every(interval).lowercased()), whether or not an app is open." }
+        if let calendarSummary { return "launchd runs it on a schedule: \(calendarSummary.lowercased())." }
+        if runAtLoad { return source == .systemDaemon ? "Starts when your Mac starts up." : "Starts when you log in." }
+        return "Registered with launchd, but only starts when another program asks for it."
+    }
+
+    private static func every(_ seconds: Int) -> String {
+        switch seconds {
+        case 86_400: return "Daily"
+        case 604_800: return "Weekly"
+        case let s where s % 3_600 == 0: return s == 3_600 ? "Every hour" : "Every \(s / 3_600) h"
+        case let s where s % 60 == 0: return "Every \(s / 60) min"
+        default: return "Every \(seconds) s"
+        }
+    }
+
+    /// The program's own name: "GoogleUpdater", "postgres", "steamclean".
+    var programName: String {
+        guard let path = executablePath else { return label }
+        let url = URL(fileURLWithPath: path)
+        if let app = url.pathComponents.lastIndex(where: { $0.hasSuffix(".app") }),
+           url.pathComponents.count - app <= 3 {
+            // ".../GoogleUpdater.app/Contents/MacOS/GoogleUpdater" reads best as the app.
+            return (url.pathComponents[app] as NSString).deletingPathExtension
+        }
+        return url.lastPathComponent
+    }
+
+    var trustLabel: String {
+        switch signatureStatus {
+        case .valid:    return signer.map { "Signed · \($0)" } ?? "Signed (ad hoc)"
+        case .unsigned: return "Unsigned"
+        case .missing:  return "Program missing"
+        case .unknown:  return "Couldn't check"
+        }
+    }
+
+    var trustTint: Color {
+        switch signatureStatus {
+        case .valid:    return signer == nil ? Color(nsColor: .systemOrange) : Color(nsColor: .systemGreen)
+        case .unsigned: return Color(nsColor: .systemOrange)
+        case .missing, .unknown: return Color(nsColor: .systemGray)
+        }
+    }
+
+    var trustNote: String {
+        switch signatureStatus {
+        case .valid where signer != nil:
+            return "Its program carries a valid signature from \(signer!), so it hasn't been changed since they shipped it."
+        case .valid:
+            return "Its program is signed, but only ad hoc, with no developer named. Usual for tools you built or installed with Homebrew."
+        case .unsigned:
+            return "Its program has no valid signature. Normal for some command-line tools; worth a look if you don't recognise it."
+        case .missing:
+            return "The program it points to isn't on this Mac any more. Usually a leftover from an app you removed."
+        case .unknown:
+            return "Inspector couldn't read this program's signature."
+        }
     }
 
     var displayPath: String {
@@ -111,7 +180,7 @@ struct BootContent: View {
                 ContentUnavailableView {
                     Label("Nothing starts at login", systemImage: "bolt.horizontal.circle")
                 } description: {
-                    Text("There are no agents in ~/Library/LaunchAgents. System-wide agents and daemons need admin access and come in a later release.")
+                    Text("Nothing in ~/Library/LaunchAgents, /Library/LaunchAgents or /Library/LaunchDaemons.")
                 }
             } else {
                 BootHeader(vm: vm)
@@ -202,77 +271,54 @@ private struct BootHeader: View {
     var body: some View {
         let total = vm.items.count
         let enabled = vm.enabledCount
+        let signed = vm.items.filter { $0.signatureStatus == .valid && $0.signer != nil }.count
+        let missing = vm.items.filter { $0.signatureStatus == .missing || $0.signatureStatus == .unknown }.count
+        let unsigned = total - signed - missing
 
         VStack(alignment: .leading, spacing: 12) {
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .lastTextBaseline, spacing: 20) {
-                    headline(enabled: enabled, total: total, inline: true)
-                    Spacer(minLength: 24)
-                    location(alignment: .trailing)
-                }
-                VStack(alignment: .leading, spacing: 10) {
-                    headline(enabled: enabled, total: total, inline: false)
-                    location(alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Starts with your Mac")
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(.secondary)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("\(enabled)")
+                        .font(.system(size: 44, weight: .semibold))
+                        .tracking(-1)
+                        .monospacedDigit()
+                    Text(enabled == 1 ? "item" : "items")
+                        .font(.title3.weight(.medium))
+                        .foregroundStyle(.secondary)
+                    Text("enabled, from \(Set(vm.items.map(\.owner)).count) developers")
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .padding(.leading, 8)
+                        .layoutPriority(-1)
                 }
             }
 
             GeometryReader { geo in
-                Capsule()
-                    .fill(Color(nsColor: .systemGreen).opacity(0.55))
-                    .frame(width: total > 0 ? geo.size.width * CGFloat(enabled) / CGFloat(total) : 0)
+                let width = geo.size.width - 4
+                let share = { (n: Int) in total > 0 ? width * CGFloat(n) / CGFloat(total) : 0 }
+                HStack(spacing: 2) {
+                    Capsule().fill(Color(nsColor: .systemGreen).opacity(0.6)).frame(width: share(signed))
+                    Capsule().fill(Color(nsColor: .systemOrange).opacity(0.65)).frame(width: share(unsigned))
+                    Capsule().fill(Color.primary.opacity(0.15))
+                }
             }
             .frame(height: 6)
-            .background(Capsule().fill(Color.primary.opacity(0.08)))
             .clipShape(Capsule())
             .accessibilityElement()
-            .accessibilityLabel("\(enabled) of \(total) agents enabled")
+            .accessibilityLabel("\(signed) signed by a developer, \(unsigned) unsigned or ad hoc, \(missing) with a missing program")
 
             HStack(spacing: 18) {
-                LegendDot(color: Color(nsColor: .systemGreen).opacity(0.75), text: "Enabled \(enabled)")
-                LegendDot(color: Color.primary.opacity(0.25), text: "Disabled \(total - enabled)")
+                LegendDot(color: Color(nsColor: .systemGreen), text: "Signed by a developer \(signed)")
+                LegendDot(color: Color(nsColor: .systemOrange), text: "Unsigned or ad hoc \(unsigned)")
+                LegendDot(color: Color.primary.opacity(0.3), text: "Program missing \(missing)")
             }
             .fixedSize()
         }
         .padding(.horizontal, 28)
         .padding(.top, 18)
-    }
-
-    private func headline(enabled: Int, total: Int, inline: Bool) -> some View {
-        let caption = Text("enabled, of \(total) in your LaunchAgents folder")
-            .foregroundStyle(.secondary)
-
-        return VStack(alignment: .leading, spacing: 2) {
-            Text("Starts with your Mac")
-                .font(.callout.weight(.medium))
-                .foregroundStyle(.secondary)
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(enabled)")
-                    .font(.system(size: 44, weight: .semibold))
-                    .tracking(-1)
-                    .monospacedDigit()
-                Text(enabled == 1 ? "agent" : "agents")
-                    .font(.title3.weight(.medium))
-                    .foregroundStyle(.secondary)
-                if inline {
-                    caption.padding(.leading, 8)
-                }
-            }
-            if !inline {
-                caption
-            }
-        }
-        .fixedSize()
-    }
-
-    private func location(alignment: HorizontalAlignment) -> some View {
-        VStack(alignment: alignment, spacing: 2) {
-            Text("~/Library/LaunchAgents")
-                .font(.system(.body, design: .monospaced))
-                .fontWeight(.semibold)
-            Text("Your user agents · read-only")
-                .foregroundStyle(.secondary)
-        }
-        .fixedSize()
     }
 }
 
@@ -289,19 +335,23 @@ private struct BootList: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 2) {
-                    ForEach(vm.visibleItems) { item in
-                        BootRow(
-                            item: item,
-                            isFocused: item.id == vm.focusedID,
-                            onFocus: {
-                                vm.focusedID = item.id
-                                isFocused = true
-                                onOpenDetails()
-                            },
-                            onQuickLook: { onQuickLook(item) }
-                        )
-                        .id(item.id)
-                        .transition(.opacity)
+                    ForEach(vm.groups) { group in
+                        GroupHeader(group: group)
+                            .padding(.top, group.id == vm.groups.first?.id ? 4 : 12)
+                        ForEach(group.items) { item in
+                            BootRow(
+                                item: item,
+                                isFocused: item.id == vm.focusedID,
+                                onFocus: {
+                                    vm.focusedID = item.id
+                                    isFocused = true
+                                    onOpenDetails()
+                                },
+                                onQuickLook: { onQuickLook(item) }
+                            )
+                            .id(item.id)
+                            .transition(.opacity)
+                        }
                     }
                 }
                 .padding(.horizontal, 14)
@@ -340,7 +390,7 @@ private struct BootRow: View {
             BootIcon(size: 26, item: item)
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(item.owner)
+                Text(item.programName)
                     .fontWeight(.medium)
                     .lineLimit(1)
                 Text(item.label)
@@ -353,20 +403,27 @@ private struct BootRow: View {
 
             Spacer(minLength: 12)
 
-            if item.isSuspicious {
-                SuspiciousBadge()
+            if item.source != .userAgent {
+                SourceBadge(source: item.source)
                     .fixedSize()
             }
 
-            SourceBadge(source: item.source)
-                .fixedSize()
-
-            StatusTag(item: item)
-                .frame(width: 80, alignment: .leading)
+            HStack(spacing: 6) {
+                Circle().fill(item.trustTint).frame(width: 6, height: 6)
+                Text(item.trustLabel)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(width: 190, alignment: .leading)
+            .help(item.trustNote)
 
             Text(item.trigger)
-                .foregroundStyle(.secondary)
-                .frame(width: 80, alignment: .trailing)
+                .foregroundStyle(item.disabled ? .tertiary : .secondary)
+                .lineLimit(1)
+                .frame(width: 112, alignment: .trailing)
+                .help(item.statusNote)
 
             Button {
                 revealPlist(item)
@@ -412,33 +469,31 @@ private struct BootRow: View {
     }
 }
 
-private struct StatusTag: View {
-    let item: BootItem
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Circle().fill(item.statusTint).frame(width: 6, height: 6)
-            Text(item.statusLabel)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-        .help(item.statusNote)
-    }
+struct BootGroup: Identifiable {
+    let owner: String
+    let items: [BootItem]
+    var id: String { owner }
 }
 
-private struct SuspiciousBadge: View {
+private struct GroupHeader: View {
+    let group: BootGroup
+
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.caption2)
-            Text("Unsigned")
-                .font(.caption2.weight(.semibold))
+        HStack(spacing: 8) {
+            if let item = group.items.first(where: { BootIcon.resolveIcon(for: $0) != nil }) ?? group.items.first {
+                BootIcon(size: 18, item: item)
+            }
+            Text(group.owner)
+                .font(.callout.weight(.semibold))
+            Text("\(group.items.count)")
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            Spacer()
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
-        .background(Capsule().fill(Color.red.opacity(0.15)))
-        .foregroundStyle(Color.red)
-        .help("The binary this agent runs has no valid code signature. Modern vendor agents are signed; an unsigned one on a system you didn't configure yourself is worth reviewing.")
+        .padding(.horizontal, 12)
+        .padding(.bottom, 2)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -472,7 +527,7 @@ private struct SourceBadge: View {
     }
 }
 
-private struct BootIcon: View {
+struct BootIcon: View {
     let item: BootItem
     let size: CGFloat
 
@@ -485,51 +540,91 @@ private struct BootIcon: View {
         if let icon = Self.resolveIcon(for: item) {
             Image(nsImage: icon)
                 .resizable()
+                .interpolation(.high)
                 .frame(width: size, height: size)
                 .accessibilityHidden(true)
         } else {
+            let fallback = Self.fallback(for: item)
             RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
-                .fill(Color.primary.opacity(0.07))
+                .fill(fallback.tint.opacity(0.16))
                 .overlay(
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: size * 0.46, weight: .medium))
-                        .foregroundStyle(.secondary)
+                    Image(systemName: fallback.symbol)
+                        .font(.system(size: size * 0.46, weight: .semibold))
+                        .foregroundStyle(fallback.tint)
                 )
                 .frame(width: size, height: size)
                 .accessibilityHidden(true)
         }
     }
 
-    /// Try to find the owning app for a boot item so we can render its real
-    /// icon instead of the generic bolt tile. Strategy:
-    ///
-    /// 1. If the Program path (or first argument) contains a `.app` component,
-    ///    walk up to that bundle and ask NSWorkspace for its icon.
-    /// 2. If the Label looks like a reverse-DNS bundle id with the app
-    ///    installed on this Mac, resolve it via NSWorkspace.
-    /// 3. Otherwise return nil so the caller renders the fallback tile.
+    /// The owning app's real icon. Tried in order: the `.app` the program lives
+    /// in, an app whose bundle ID is the label, then the vendor's main app.
     static func resolveIcon(for item: BootItem) -> NSImage? {
-        if let appURL = appBundleURL(fromProgramPath: item.programDisplay) {
-            return NSWorkspace.shared.icon(forFile: appURL.path)
-        }
-        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: item.label) {
-            return NSWorkspace.shared.icon(forFile: appURL.path)
-        }
-        return nil
+        let key = item.id as NSString
+        if let hit = clients.object(forKey: key) { return AppIconCache.icon(forClient: hit as String) }
+        let client = appClient(for: item) ?? ""
+        clients.setObject(client as NSString, forKey: key)
+        return AppIconCache.icon(forClient: client)
     }
 
-    private static func appBundleURL(fromProgramPath raw: String) -> URL? {
-        // ProgramArguments is often "/path/to/App.app/Contents/MacOS/App --flag".
-        // Take the first whitespace-delimited token as the executable path.
-        let token = raw.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) ?? raw
-        var url = URL(fileURLWithPath: token)
-        while url.pathComponents.count > 1 {
-            if url.pathExtension == "app" {
-                return url
-            }
-            url = url.deletingLastPathComponent()
+    private static let clients = NSCache<NSString, NSString>()
+
+    private static func appClient(for item: BootItem) -> String? {
+        if let path = item.executablePath,
+           let app = URL(fileURLWithPath: path).pathComponents.lastIndex(where: { $0.hasSuffix(".app") }) {
+            let appPath = NSString.path(withComponents: Array(URL(fileURLWithPath: path).pathComponents[...app]))
+            if FileManager.default.fileExists(atPath: appPath) { return appPath }
         }
-        return nil
+        if NSWorkspace.shared.urlForApplication(withBundleIdentifier: item.label) != nil { return item.label }
+        let vendor = item.label.split(separator: ".").prefix(2).joined(separator: ".").lowercased()
+        return vendorApps[vendor]?.first { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) != nil }
+    }
+
+    /// Reverse-DNS vendor prefix → the apps whose icon stands for that vendor's agents.
+    private static let vendorApps: [String: [String]] = [
+        "com.google": ["com.google.Chrome", "com.google.drivefs", "com.google.android.studio"],
+        "com.adobe": ["com.adobe.acc.AdobeCreativeCloud", "com.adobe.Acrobat.Pro", "com.adobe.Reader"],
+        "com.microsoft": ["com.microsoft.autoupdate2", "com.microsoft.teams2", "com.microsoft.Outlook", "com.microsoft.Word", "com.microsoft.VSCode", "com.microsoft.edgemac"],
+        "us.zoom": ["us.zoom.xos"],
+        "com.valvesoftware": ["com.valvesoftware.steam"],
+        "com.docker": ["com.docker.docker"],
+        "com.spotify": ["com.spotify.client"],
+        "com.getdropbox": ["com.getdropbox.dropbox"],
+        "com.dropbox": ["com.getdropbox.dropbox"],
+        "com.logi": ["com.logi.optionsplus", "com.logitech.manager.daemon"],
+        "com.logitech": ["com.logi.optionsplus", "com.logitech.manager.daemon"],
+        "com.1password": ["com.1password.1password"],
+        "com.agilebits": ["com.1password.1password"],
+        "com.raycast": ["com.raycast.macos"],
+        "com.figma": ["com.figma.Desktop"],
+        "com.jetbrains": ["com.jetbrains.toolbox"],
+        "com.parallels": ["com.parallels.desktop.console"],
+        "com.vmware": ["com.vmware.fusion"],
+        "io.tailscale": ["io.tailscale.ipn.macsys", "io.tailscale.ipn.macos"],
+        "com.grammarly": ["com.grammarly.ProjectLlama"],
+        "com.teamviewer": ["com.teamviewer.TeamViewer"],
+        "com.nordvpn": ["com.nordvpn.macos"],
+        "com.malwarebytes": ["com.malwarebytes.mbam.frontend.application"],
+        "com.elgato": ["com.elgato.StreamDeck"],
+        "org.mozilla": ["org.mozilla.firefox"],
+        "com.brave": ["com.brave.Browser"],
+        "com.objective-see": ["com.objective-see.lulu.app"],
+        "com.setapp": ["com.setapp.DesktopClient"],
+        "com.macpaw": ["com.macpaw.CleanMyMac5", "com.macpaw.CleanMyMac4"],
+        "com.github": ["com.github.GitHubClient"],
+        "com.cisco": ["com.cisco.secureclient.gui"],
+        "com.paloaltonetworks": ["com.paloaltonetworks.GlobalProtect.client"],
+        "com.crowdstrike": ["com.crowdstrike.falcon.App"],
+    ]
+
+    /// No app to borrow an icon from: Homebrew gets its mug, other command-line
+    /// programs a terminal, and a missing program a question mark.
+    private static func fallback(for item: BootItem) -> (symbol: String, tint: Color) {
+        if item.signatureStatus == .missing { return ("questionmark", .secondary) }
+        if item.label.hasPrefix("homebrew.") || (item.executablePath ?? "").contains("/homebrew/") || (item.executablePath ?? "").hasPrefix("/usr/local/") {
+            return ("mug.fill", Color(nsColor: .systemOrange))
+        }
+        return ("terminal.fill", .secondary)
     }
 }
 
@@ -575,11 +670,10 @@ struct BootDetailsPane: View {
             HStack(spacing: 12) {
                 BootIcon(size: 44, item: item)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.owner)
+                    Text(item.programName)
                         .font(.title3.weight(.semibold))
-                    Text(item.label)
+                    Text("\(item.owner) · \(item.source.label)")
                         .foregroundStyle(.secondary)
-                        .textSelection(.enabled)
                 }
             }
 
@@ -591,6 +685,20 @@ struct BootDetailsPane: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(item.statusLabel) · \(item.trigger)").fontWeight(.semibold)
                     Text(item.statusNote).foregroundStyle(.secondary)
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.primary.opacity(0.04)))
+
+            HStack(alignment: .top, spacing: 10) {
+                Circle()
+                    .fill(item.trustTint)
+                    .frame(width: 8, height: 8)
+                    .padding(.top, 5)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.trustLabel).fontWeight(.semibold)
+                    Text(item.trustNote).foregroundStyle(.secondary)
                 }
             }
             .padding(12)
@@ -609,6 +717,12 @@ struct BootDetailsPane: View {
             Divider()
 
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 12, verticalSpacing: 8) {
+                GridRow {
+                    Text("Label").foregroundStyle(.secondary)
+                    Text(item.label)
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                }
                 GridRow {
                     Text("Run at load").foregroundStyle(.secondary)
                     Text(item.runAtLoad ? "Yes" : "No")

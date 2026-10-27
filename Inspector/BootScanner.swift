@@ -86,6 +86,8 @@ enum BootScanner {
             return false
         }()
         let disabled = (dict["Disabled"] as? Bool) ?? false
+        let executable = program ?? args?.first
+        let signature = BootSignatureChecker.check(executable: executable)
 
         return BootItem(
             plistURL: url,
@@ -96,8 +98,37 @@ enum BootScanner {
             disabled: disabled,
             owner: inferOwner(label: label, programDisplay: display),
             source: source,
-            signatureStatus: BootSignatureChecker.status(forPlistProgram: display)
+            signatureStatus: signature.status,
+            executablePath: executable,
+            signer: signature.signer,
+            startInterval: (dict["StartInterval"] as? NSNumber)?.intValue,
+            calendarSummary: calendarSummary(dict["StartCalendarInterval"])
         )
+    }
+
+    /// `StartCalendarInterval` in words. It's a dictionary of Minute / Hour / Day /
+    /// Weekday / Month keys (missing means "every"), or an array of them.
+    static func calendarSummary(_ raw: Any?) -> String? {
+        if let list = raw as? [[String: Any]] {
+            guard let first = list.first.flatMap(calendarSummary) else { return nil }
+            return list.count == 1 ? first : "\(list.count) times a day or week"
+        }
+        guard let dict = raw as? [String: Any] else { return nil }
+        let minute = (dict["Minute"] as? NSNumber)?.intValue
+        let hour = (dict["Hour"] as? NSNumber)?.intValue
+        let weekday = (dict["Weekday"] as? NSNumber)?.intValue
+        let day = (dict["Day"] as? NSNumber)?.intValue
+
+        guard let hour else {
+            return minute.map { String(format: "Hourly at :%02d", $0) } ?? "Every minute"
+        }
+        let time = String(format: "%d:%02d", hour, minute ?? 0)
+        if let weekday {
+            let names = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"]
+            return "\(names[min(max(weekday, 0), 7)]) at \(time)"
+        }
+        if let day { return "Monthly on day \(day) at \(time)" }
+        return "Daily at \(time)"
     }
 
     /// Best-effort pretty name for the row. "com.google.keystone.agent" → "Google".
@@ -129,7 +160,26 @@ enum BootScanner {
             "jetbrains": "JetBrains",
             "mozilla": "Mozilla",
             "homebrew": "Homebrew",
-            "github": "GitHub"
+            "github": "GitHub",
+            "valvesoftware": "Valve (Steam)",
+            "logi": "Logitech", "logitech": "Logitech",
+            "agilebits": "1Password", "1password": "1Password",
+            "getdropbox": "Dropbox",
+            "teamviewer": "TeamViewer",
+            "nordvpn": "NordVPN",
+            "macpaw": "MacPaw",
+            "vmware": "VMware",
+            "parallels": "Parallels",
+            "tailscale": "Tailscale",
+            "jamf": "Jamf",
+            "crowdstrike": "CrowdStrike",
+            "paloaltonetworks": "Palo Alto Networks",
+            "objective-see": "Objective-See",
+            "elgato": "Elgato",
+            "grammarly": "Grammarly",
+            "malwarebytes": "Malwarebytes",
+            "openai": "OpenAI",
+            "anthropic": "Anthropic"
         ]
 
         if let hit = friendly[firstSegment.lowercased()] { return hit }

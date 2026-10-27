@@ -112,20 +112,47 @@ enum PermissionsScanner {
         return rows
     }
 
-    /// Best-effort friendly app name. If NSWorkspace can resolve the bundle ID
-    /// to an installed app we use its localized name; otherwise we return a
-    /// prettied-up version of the bundle ID.
-    private static func resolveAppName(bundleID: String) -> String {
+    /// Best-effort friendly app name for a TCC client, which is either a bundle ID or,
+    /// for command-line tools and relocated apps, an absolute path.
+    ///
+    /// - An installed app's own display name wins.
+    /// - A path is named after the `.app` it sits in, else its last component.
+    /// - Otherwise the bundle ID is prettied up, skipping platform suffixes so
+    ///   `ai.perplexity.mac` reads "Perplexity", `us.zoom.xos` "Zoom" and
+    ///   `com.microsoft.teams2` "Teams".
+    static func resolveAppName(bundleID client: String) -> String {
+        if client.hasPrefix("/") {
+            let url = URL(fileURLWithPath: client)
+            if let app = url.pathComponents.lastIndex(where: { $0.hasSuffix(".app") }) {
+                let appURL = URL(fileURLWithPath: NSString.path(withComponents: Array(url.pathComponents[...app])))
+                return bundleName(at: appURL) ?? appURL.deletingPathExtension().lastPathComponent
+            }
+            return url.lastPathComponent
+        }
         #if canImport(AppKit)
-        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID),
-           let bundle = Bundle(url: url),
-           let name = (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
-                   ?? (bundle.object(forInfoDictionaryKey: "CFBundleName") as? String) {
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: client),
+           let name = bundleName(at: url) {
             return name
         }
         #endif
-        // "com.google.Chrome" → "Chrome"
-        return bundleID.split(separator: ".").last.map(String.init) ?? bundleID
+        return prettyName(fromBundleID: client)
+    }
+
+    static func prettyName(fromBundleID bundleID: String) -> String {
+        let platformSuffixes: Set<String> = ["mac", "macos", "osx", "xos", "app", "desktop", "client", "helper"]
+        let parts = bundleID.split(separator: ".").map(String.init)
+        guard parts.count > 1 else { return bundleID }
+        var pick = parts[parts.count - 1]
+        if platformSuffixes.contains(pick.lowercased()) { pick = parts[parts.count - 2] }
+        while let last = pick.last, last.isNumber { pick.removeLast() }
+        guard let first = pick.first else { return bundleID }
+        return first.uppercased() + pick.dropFirst()
+    }
+
+    private static func bundleName(at url: URL) -> String? {
+        guard let bundle = Bundle(url: url) else { return nil }
+        return (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
+            ?? (bundle.object(forInfoDictionaryKey: "CFBundleName") as? String)
     }
 }
 
