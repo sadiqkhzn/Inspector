@@ -301,7 +301,7 @@ private struct BootRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            BootIcon(size: 26)
+            BootIcon(size: 26, item: item)
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(item.owner)
@@ -383,18 +383,63 @@ private struct StatusTag: View {
 }
 
 private struct BootIcon: View {
+    let item: BootItem
     let size: CGFloat
 
+    init(size: CGFloat, item: BootItem) {
+        self.size = size
+        self.item = item
+    }
+
     var body: some View {
-        RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
-            .fill(Color.primary.opacity(0.07))
-            .overlay(
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: size * 0.46, weight: .medium))
-                    .foregroundStyle(.secondary)
-            )
-            .frame(width: size, height: size)
-            .accessibilityHidden(true)
+        if let icon = Self.resolveIcon(for: item) {
+            Image(nsImage: icon)
+                .resizable()
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
+        } else {
+            RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                .fill(Color.primary.opacity(0.07))
+                .overlay(
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: size * 0.46, weight: .medium))
+                        .foregroundStyle(.secondary)
+                )
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// Try to find the owning app for a boot item so we can render its real
+    /// icon instead of the generic bolt tile. Strategy:
+    ///
+    /// 1. If the Program path (or first argument) contains a `.app` component,
+    ///    walk up to that bundle and ask NSWorkspace for its icon.
+    /// 2. If the Label looks like a reverse-DNS bundle id with the app
+    ///    installed on this Mac, resolve it via NSWorkspace.
+    /// 3. Otherwise return nil so the caller renders the fallback tile.
+    static func resolveIcon(for item: BootItem) -> NSImage? {
+        if let appURL = appBundleURL(fromProgramPath: item.programDisplay) {
+            return NSWorkspace.shared.icon(forFile: appURL.path)
+        }
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: item.label) {
+            return NSWorkspace.shared.icon(forFile: appURL.path)
+        }
+        return nil
+    }
+
+    private static func appBundleURL(fromProgramPath raw: String) -> URL? {
+        // ProgramArguments is often "/path/to/App.app/Contents/MacOS/App --flag".
+        // Take the first whitespace-delimited token as the executable path.
+        let token = raw.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) ?? raw
+        var url = URL(fileURLWithPath: token)
+        while url.pathComponents.count > 1 {
+            if url.pathExtension == "app" {
+                return url
+            }
+            url = url.deletingLastPathComponent()
+        }
+        return nil
     }
 }
 
@@ -438,7 +483,7 @@ struct BootDetailsPane: View {
     private func details(_ item: BootItem) -> some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
-                BootIcon(size: 44)
+                BootIcon(size: 44, item: item)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.owner)
                         .font(.title3.weight(.semibold))
