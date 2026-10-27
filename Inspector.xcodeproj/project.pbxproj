@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0BAD3E6BE2890414138924A8 /* KnownItemsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35792DC4AE1940A651D5A99 /* KnownItemsTests.swift */; };
 		0C020B5C90F88C0AAEDAE82A /* KnownItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDE58C2302D4D68E880A1582 /* KnownItems.swift */; };
 		0D130AB325962863C029173E /* InspectorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77F9BF11B9BACC09F814094 /* InspectorApp.swift */; };
 		1F6C964894A3F6B7B70A6E97 /* BootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A588B197418FE74E64694F68 /* BootView.swift */; };
@@ -24,14 +25,26 @@
 		FA03737E59FCCD87A7F1FC61 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF81F8EEB85C03AA644E2C /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		FBACCB09DDD43418B371A847 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7ADF37A9D22FA56085104EB8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5F628C98B58140F04527DC54;
+			remoteInfo = Inspector;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		15855173281F9CC32947DC7F /* Inspector.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Inspector.entitlements; sourceTree = "<group>"; };
 		1B054BC5FCDD4A23913E4F57 /* PermissionsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsScanner.swift; sourceTree = "<group>"; };
 		28E2ABDC3BA1E8901B3F0CBC /* Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Inspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B68CF5ABC76C7F85D57914E /* InspectorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InspectorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5004E652159EEF65AAC81E79 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8CF888034750A2AD17467415 /* BootItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootItem.swift; sourceTree = "<group>"; };
 		8E1260D4791F9F772B3D92E8 /* PermissionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionItem.swift; sourceTree = "<group>"; };
 		A0FB26E4D572EE24D16E958A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A35792DC4AE1940A651D5A99 /* KnownItemsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnownItemsTests.swift; sourceTree = "<group>"; };
 		A588B197418FE74E64694F68 /* BootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootView.swift; sourceTree = "<group>"; };
 		B0080AC0D155A30D372C7748 /* BootSignature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootSignature.swift; sourceTree = "<group>"; };
 		B68847A9D72FA29098128142 /* Owners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Owners.swift; sourceTree = "<group>"; };
@@ -50,8 +63,17 @@
 			isa = PBXGroup;
 			children = (
 				A761E7DB837D91AAEB132C46 /* Inspector */,
+				97E7920A8F679AB70985593F /* Tests */,
 				F211F7372C1F06D2B2A68F3F /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		97E7920A8F679AB70985593F /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				A35792DC4AE1940A651D5A99 /* KnownItemsTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		A761E7DB837D91AAEB132C46 /* Inspector */ = {
@@ -82,6 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				28E2ABDC3BA1E8901B3F0CBC /* Inspector.app */,
+				2B68CF5ABC76C7F85D57914E /* InspectorTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +112,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1DC55C58DA8A5EBAFE029693 /* InspectorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0CD943021B3FD61BE688184B /* Build configuration list for PBXNativeTarget "InspectorTests" */;
+			buildPhases = (
+				026451BCB10806DB686D8D60 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				753279482B4E08ADA55FE5E1 /* PBXTargetDependency */,
+			);
+			name = InspectorTests;
+			packageProductDependencies = (
+			);
+			productName = InspectorTests;
+			productReference = 2B68CF5ABC76C7F85D57914E /* InspectorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		5F628C98B58140F04527DC54 /* Inspector */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F9A4E8A43F836B4192670629 /* Build configuration list for PBXNativeTarget "Inspector" */;
@@ -136,6 +177,7 @@
 			projectRoot = "";
 			targets = (
 				5F628C98B58140F04527DC54 /* Inspector */,
+				1DC55C58DA8A5EBAFE029693 /* InspectorTests */,
 			);
 		};
 /* End PBXProject section */
@@ -152,6 +194,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		026451BCB10806DB686D8D60 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BAD3E6BE2890414138924A8 /* KnownItemsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AC37BEB0A6DA6D035BDA75AD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -175,7 +225,32 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		753279482B4E08ADA55FE5E1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5F628C98B58140F04527DC54 /* Inspector */;
+			targetProxy = FBACCB09DDD43418B371A847 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0085EB7DF2E6B86375D261D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.sadiqkhzn.InspectorTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Inspector.app/Contents/MacOS/Inspector";
+			};
+			name = Debug;
+		};
 		046BCA7755BF5DAF489BFBDD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -341,9 +416,35 @@
 			};
 			name = Release;
 		};
+		E79D4B796497265E14E6B2CC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.sadiqkhzn.InspectorTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Inspector.app/Contents/MacOS/Inspector";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0CD943021B3FD61BE688184B /* Build configuration list for PBXNativeTarget "InspectorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0085EB7DF2E6B86375D261D7 /* Debug */,
+				E79D4B796497265E14E6B2CC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		E6ECD3528160293AB53AE0D2 /* Build configuration list for PBXProject "Inspector" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

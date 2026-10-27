@@ -136,8 +136,8 @@ enum KnownItems {
             "Zoom cache",
             "Library/Caches/us.zoom.xos",
             .safe, .cache,
-            "Zoom's temp cache.",
-            "Rebuilds on next launch.",
+            "Zoom client's HTTP response and preview assets cache. Separate from the sign-in token and preferences, which live under Application Support.",
+            "Zoom rebuilds the cache on next launch. You stay signed in and your meeting history is kept.",
             verified: true
         ),
         KnownItemSpec(
@@ -931,9 +931,9 @@ KnownItemSpec(
         KnownItemSpec(
             "Vagrant boxes",
             ".vagrant.d/boxes",
-            .keep, .devTool,
+            .review, .devTool,
             "Downloaded Vagrant VM box images. Each box is often 500 MB to 5 GB.",
-            "Vagrant re-downloads each box the next time you 'vagrant up'. Can be a very large download if you have multiple boxes."
+            "Vagrant re-downloads each box the next time you 'vagrant up'. No data is lost, but can be a very large download if you have multiple boxes."
         ),
         KnownItemSpec(
             "Parallels snapshots",
