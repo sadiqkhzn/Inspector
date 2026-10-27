@@ -47,15 +47,21 @@ struct PermissionsView: View {
         ContentUnavailableView {
             Label("Grant Full Disk Access", systemImage: "lock.shield")
         } description: {
-            Text("Inspector needs Full Disk Access to read macOS's privacy database and show which apps have camera, mic, screen recording and other permissions.")
+            Text("Inspector needs Full Disk Access to read macOS's privacy database and show which apps have camera, mic, screen recording and other permissions. After granting it, Inspector will pick up the change on its own.")
         } actions: {
             Button("Open System Settings → Privacy & Security") {
                 if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
                     NSWorkspace.shared.open(url)
                 }
             }
-            Button("Try again") { Task { await vm.load() } }
-                .buttonStyle(.borderless)
+            .controlSize(.large)
+        }
+        .padding(.horizontal, 24)
+        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
+            // No "Try again" button needed — poll the TCC DB every 2 seconds
+            // while we're in the "needs FDA" state. The moment the user grants
+            // access, the next tick picks it up and swaps the view.
+            if !vm.hasFullDiskAccess { Task { await vm.load() } }
         }
     }
 
@@ -85,11 +91,24 @@ struct PermissionsView: View {
         let stale   = vm.items.filter { $0.tier == .stale }.count
         let granted = vm.items.filter { $0.tier == .granted }.count
         let denied  = vm.items.filter { $0.tier == .denied }.count
-        return HStack(spacing: 20) {
-            summaryCell(label: "Risky", count: risky, color: .orange)
-            summaryCell(label: "Stale", count: stale, color: .yellow)
-            summaryCell(label: "Granted", count: granted, color: .green)
-            summaryCell(label: "Denied", count: denied, color: .secondary)
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 20) {
+                summaryCell(label: "Risky", count: risky, color: .orange)
+                summaryCell(label: "Stale", count: stale, color: .yellow)
+                summaryCell(label: "Granted", count: granted, color: .green)
+                summaryCell(label: "Denied", count: denied, color: .secondary)
+            }
+            // Narrow: 2×2 grid
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 20) {
+                    summaryCell(label: "Risky", count: risky, color: .orange)
+                    summaryCell(label: "Stale", count: stale, color: .yellow)
+                }
+                HStack(spacing: 20) {
+                    summaryCell(label: "Granted", count: granted, color: .green)
+                    summaryCell(label: "Denied", count: denied, color: .secondary)
+                }
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -129,9 +148,13 @@ private struct SectionView: View {
                     Button {
                         NSWorkspace.shared.open(url)
                     } label: {
-                        Label("Open in Settings", systemImage: "arrow.up.right.square")
-                            .labelStyle(.titleAndIcon)
-                            .font(.caption)
+                        ViewThatFits(in: .horizontal) {
+                            Label("Open in Settings", systemImage: "arrow.up.right.square")
+                                .labelStyle(.titleAndIcon)
+                                .font(.caption)
+                            Image(systemName: "arrow.up.right.square")
+                                .font(.caption)
+                        }
                     }
                     .buttonStyle(.borderless)
                     .foregroundStyle(.secondary)
@@ -154,15 +177,19 @@ private struct SectionView: View {
         HStack(spacing: 10) {
             AppIcon(bundleID: item.bundleID)
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.appName).font(.body)
+                Text(item.appName).font(.body).lineLimit(1).truncationMode(.tail)
                 Text(item.bundleID).font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.middle)
             }
-            Spacer()
+            Spacer(minLength: 8)
             TierChip(tier: item.tier)
             if let last = item.lastModified {
-                Text(last, format: .relative(presentation: .named))
-                    .font(.caption).foregroundStyle(.secondary)
-                    .frame(minWidth: 88, alignment: .trailing)
+                ViewThatFits(in: .horizontal) {
+                    Text(last, format: .relative(presentation: .named))
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(minWidth: 88, alignment: .trailing)
+                    EmptyView()  // Drop the last-used column entirely when the row runs out of room.
+                }
             }
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
