@@ -10,7 +10,27 @@ struct InspectorApp: App {
         .defaultSize(width: 1080, height: 760)
         .windowResizability(.contentMinSize)
         .windowToolbarStyle(.unified(showsTitle: true))
-        .commands { SearchCommands() }
+        .commands {
+            SearchCommands()
+            BootWindowCommand()
+        }
+
+        Window("Boot items", id: "boot-items") {
+            BootView()
+        }
+        .defaultSize(width: 760, height: 560)
+    }
+}
+
+struct BootWindowCommand: Commands {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        CommandGroup(after: .windowArrangement) {
+            Divider()
+            Button("Boot items") { openWindow(id: "boot-items") }
+                .keyboardShortcut("b", modifiers: [.command, .option])
+        }
     }
 }
 
