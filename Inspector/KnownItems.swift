@@ -69,6 +69,14 @@ enum KnownItems {
             verified: true
         ),
         KnownItemSpec(
+            "puccinialin cache",
+            "Library/Caches/puccinialin",
+            .safe, .devTool,
+            "A bootstrap Rust toolchain (cargo/rustup) that some Python build tools (e.g. maturin) download when no system Rust is present, used to compile Rust-based Python packages.",
+            "Re-downloads the next time a Python package needs to build a Rust extension and no system Rust is found.",
+            verified: false
+        ),
+        KnownItemSpec(
             "Python Launcher cache",
             "Library/Caches/com.apple.python",
             .safe, .devTool,
@@ -189,6 +197,22 @@ enum KnownItems {
             verified: true
         ),
         KnownItemSpec(
+            "VS Code extension installers",
+            "Library/Application Support/Code/CachedExtensionVSIXs",
+            .safe, .cache,
+            "Downloaded .vsix installer packages for extensions, kept after the install completes.",
+            "Nothing. VS Code only re-downloads a package if you reinstall the same extension.",
+            verified: false
+        ),
+        KnownItemSpec(
+            "VS Code updater cache",
+            "Library/Caches/com.microsoft.VSCode.ShipIt",
+            .safe, .installerLeftover,
+            "Leftover updater packages from VS Code's Sparkle-based auto-updater.",
+            "Nothing. The app itself keeps working.",
+            verified: false
+        ),
+        KnownItemSpec(
             "node-gyp cache",
             "Library/Caches/node-gyp",
             .safe, .devTool,
@@ -306,6 +330,14 @@ KnownItemSpec(
             "Brave's browser cache. Rebuilt as you browse.",
             "Brave will rebuild it as you browse. Profile, bookmarks, and history stay.",
             verified: true
+        ),
+        KnownItemSpec(
+            "Brave updater cache",
+            "Library/Caches/com.brave.Browser/org.sparkle-project.Sparkle",
+            .safe, .installerLeftover,
+            "Leftover updater packages from Brave's Sparkle-based auto-updater.",
+            "Nothing. The app itself keeps working.",
+            verified: false
         ),
         KnownItemSpec(
             "Arc browser cache",
@@ -962,6 +994,14 @@ KnownItemSpec(
             .safe, .cache,
             "Spark Mail's local cache.",
             "Spark re-downloads as needed."
+        ),
+        KnownItemSpec(
+            "Webex updater cache",
+            "Library/Application Support/Cisco Spark/Webexteams_upgrades_arm",
+            .safe, .installerLeftover,
+            "Leftover downloaded installer packages from Webex's (formerly Cisco Spark) auto-updater. Narrowed to this subfolder rather than the whole \"Cisco Spark\" app data folder, which also holds account and chat state.",
+            "Nothing. The app itself keeps working.",
+            verified: false
         ),
         KnownItemSpec(
             "Chrome Canary cache",
