@@ -287,6 +287,10 @@ struct ContentView: View {
         .focusedSceneValue(\.focusSearch, focusSearch)
         .focusedSceneValue(\.inspectorMode, $mode)
         .animation(motion(reduceMotion, .easeOut(duration: 0.15)), value: mode)
+        // Each tab has its own details, so switching tabs starts with the pane closed.
+        .onChange(of: mode) { _, _ in
+            if showDetails { setDetails(visible: false) }
+        }
         .quickLookPreview($quickLookURL)
         .confirmationDialog(
             "Move \(vm.selectedItems.count) items to the Trash?",
@@ -368,7 +372,7 @@ struct ContentView: View {
         ToolbarItem(placement: .navigation) {
             ModeTabs(selection: $mode)
         }
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItem(placement: .principal) {
             ToolbarSearchField(text: searchText, prompt: mode.searchPrompt, isFocused: $searchFocused)
         }
         ToolbarItemGroup(placement: .primaryAction) {
@@ -1284,7 +1288,7 @@ private struct ToolbarSearchField: View {
             }
         }
         .padding(.horizontal, 9)
-        .frame(width: 240, height: 26)
+        .frame(width: 300, height: 26)
         .modifier(SearchFieldChrome())
     }
 }
@@ -1303,8 +1307,7 @@ private struct ModeTabs: View {
                 tab(mode)
             }
         }
-        .padding(2)
-        .background(Capsule().fill(Color.primary.opacity(0.06)))
+        .modifier(ModeTabsTrack())
         .fixedSize()
         .accessibilityElement(children: .contain)
         .accessibilityLabel("View")
@@ -1334,6 +1337,29 @@ private struct ModeTabs: View {
         .buttonStyle(.plain)
         .help("\(mode.title)  ⌘\(String(mode.shortcut.character))")
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+}
+
+// macOS 26 already wraps the item in a glass capsule; a second track inside it
+// would leave two outlines with mismatched curves at the ends.
+private struct ModeTabsTrack: ViewModifier {
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) {
+            content
+        } else {
+            track(content)
+        }
+        #else
+        track(content)
+        #endif
+    }
+
+    private func track(_ content: Content) -> some View {
+        content
+            .padding(2)
+            .background(Capsule().fill(Color.primary.opacity(0.06)))
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
     }
 }
 
