@@ -62,6 +62,16 @@ final class StorageViewModel: ObservableObject {
         hasScanned = true
     }
 
+    /// Lightweight update that only re-reads disk free / total — no catalog scan.
+    /// Scanner.diskSnapshot is a single syscall (~1-2 ms, no disk I/O), so this
+    /// is safe to call on a 1-second interval. Called by a background poll in
+    /// ContentView so the header stays live when space is freed outside Inspector
+    /// (Trash emptied, downloads deleted, brew cleanup, etc.) without triggering
+    /// an expensive catalog rescan.
+    func pollDiskOnly() {
+        disk = Scanner.diskSnapshot()
+    }
+
     func toggle(_ id: CleanupItem.ID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].selected.toggle()
@@ -235,6 +245,12 @@ struct ContentView: View {
             Text(vm.errorMessage ?? "")
         }
         .task { await vm.refresh() }
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                vm.pollDiskOnly()
+            }
+        }
     }
 
     @ToolbarContentBuilder
