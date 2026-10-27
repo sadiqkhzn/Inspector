@@ -240,24 +240,26 @@ struct ContentView: View {
         ToolbarItem(placement: .principal) {
             ToolbarSearchField(text: $vm.searchText, isFocused: $searchFocused)
         }
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItemGroup(placement: .primaryAction) {
             Button {
                 Task { await vm.refresh() }
             } label: {
-                HStack(spacing: 6) {
-                    if vm.isScanning {
-                        ProgressView().controlSize(.small)
-                    }
-                    Text("Rescan")
-                    Text("⌘R")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                if vm.isScanning {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Label("Rescan", systemImage: "arrow.clockwise")
                 }
-                .padding(.horizontal, 4)
             }
-            .help("Rescan (⌘R)")
+            .help("Rescan  ⌘R")
             .keyboardShortcut("r")
             .disabled(vm.isScanning)
+
+            Button {
+                setDetails(visible: !showDetails)
+            } label: {
+                Label(showDetails ? "Hide Details" : "Show Details", systemImage: "sidebar.right")
+            }
+            .help(showDetails ? "Hide details  ⌥⌘I" : "Show details  ⌥⌘I")
         }
     }
 
@@ -287,7 +289,8 @@ struct ContentView: View {
                     ItemList(
                         vm: vm,
                         onQuickLook: { quickLookURL = $0.url },
-                        onOpenDetails: { if !showDetails { setDetails(visible: true) } }
+                        onOpenDetails: { if !showDetails { setDetails(visible: true) } },
+                        bottomInset: barState == 0 ? 12 : 84
                     )
                 }
             }
@@ -313,17 +316,6 @@ struct ContentView: View {
             .buttonStyle(.borderless)
             .keyboardShortcut("a", modifiers: [.command, .option])
             .disabled(!vm.visibleItems.contains { $0.safety == .safe && !$0.selected })
-            if !showDetails {
-                Button {
-                    setDetails(visible: true)
-                } label: {
-                    Image(systemName: "sidebar.right")
-                }
-                .buttonStyle(.borderless)
-                .help("Show details (⌥⌘I)")
-                .accessibilityLabel("Show details")
-                .transition(.opacity)
-            }
         }
         .padding(.leading, 26)
         .padding(.trailing, 20)
@@ -586,6 +578,8 @@ private struct ItemList: View {
     @ObservedObject var vm: StorageViewModel
     let onQuickLook: (CleanupItem) -> Void
     let onOpenDetails: () -> Void
+    /// Room kept below the last row so the floating bar never covers it; only while the bar is up.
+    let bottomInset: CGFloat
     @FocusState private var isFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -611,7 +605,8 @@ private struct ItemList: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.top, 4)
-                .padding(.bottom, 96)
+                .padding(.bottom, bottomInset)
+                .animation(motion(reduceMotion), value: bottomInset)
             }
             .focusable()
             .focused($isFocused)
@@ -804,17 +799,22 @@ private struct DetailsPane: View {
         VStack(spacing: 0) {
             HStack {
                 Text("Details")
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
                 Spacer()
                 Button(action: onClose) {
-                    Image(systemName: "sidebar.right")
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20, height: 20)
+                        .contentShape(Circle())
                 }
-                .buttonStyle(.borderless)
-                .help("Hide details (⌥⌘I)")
+                .buttonStyle(.plain)
+                .help("Hide details  ⌥⌘I")
                 .accessibilityLabel("Hide details")
             }
             .padding(.horizontal, 16)
-            .frame(height: 40)
+            .frame(height: 32)
             Divider()
             itemDetails
         }
@@ -1106,11 +1106,13 @@ private struct ToolbarSearchField: View {
     var isFocused: FocusState<Bool>.Binding
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 5) {
             Image(systemName: "magnifyingglass")
+                .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
             TextField("Filter by name, path or app", text: $text)
                 .textFieldStyle(.plain)
+                .font(.callout)
                 .focused(isFocused)
                 .onExitCommand {
                     text = ""
@@ -1118,17 +1120,15 @@ private struct ToolbarSearchField: View {
                 }
             if text.isEmpty {
                 Text("⌘F")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
-                    .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(Color.primary.opacity(0.07)))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             } else {
                 Button {
                     text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
                         .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
@@ -1136,8 +1136,8 @@ private struct ToolbarSearchField: View {
                 .accessibilityLabel("Clear search")
             }
         }
-        .padding(.horizontal, 10)
-        .frame(width: 420, height: 28)
+        .padding(.horizontal, 9)
+        .frame(width: 340, height: 26)
         .modifier(SearchFieldChrome())
     }
 }

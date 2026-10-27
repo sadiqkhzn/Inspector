@@ -1,0 +1,50 @@
+name: UI screenshot
+
+on:
+  push:
+    branches: [feat/compact-toolbar]
+
+jobs:
+  screenshot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild -scheme Inspector -configuration Debug -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || status=$?
+          grep -E "error:|warning: .*(ContentView|InspectorApp)|BUILD" build.log || true
+          exit ${status:-0}
+      - name: Seed sample caches
+        run: |
+          for p in .npm .gradle/caches .m2/repository Library/Caches/pip Library/Caches/Yarn \
+                   Library/pnpm/store .bun/install/cache Library/Caches/deno .cargo/registry/cache \
+                   go/pkg/mod/cache/download Library/Caches/CocoaPods Library/Caches/org.swift.swiftpm \
+                   Library/Caches/composer .gem/cache Library/Caches/uv Library/Caches/pypoetry; do
+            mkdir -p "$HOME/$p" && dd if=/dev/zero of="$HOME/$p/sample.bin" bs=1m count=60 2>/dev/null
+          done
+      - name: Launch and capture
+        run: |
+          shot() {
+            screencapture -x "$1.png"
+            sips -Z 1100 -s format jpeg -s formatOptions 50 "$1.png" --out "$1.jpg" >/dev/null
+            echo "BEGIN_SHOT $1"
+            base64 -i "$1.jpg" | tr -d '\n' | fold -w 8000
+            echo
+            echo "END_SHOT"
+          }
+          open build/Build/Products/Debug/Inspector.app
+          sleep 30
+          osascript -e 'tell application "Inspector" to activate' || true
+          sleep 2
+          shot top
+          for i in $(seq 1 40); do osascript -e 'tell application "System Events" to key code 125' || true; done
+          sleep 2
+          shot bottom
+          osascript -e 'tell application "System Events" to keystroke "a" using {command down, option down}' || true
+          sleep 2
+          shot selected
