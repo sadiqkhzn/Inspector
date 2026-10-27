@@ -348,7 +348,7 @@ struct ContentView: View {
         switch mode {
         case .storage:     Task { await vm.refresh() }
         case .boot:        withAnimation(motion(reduceMotion)) { boot.load() }
-        case .permissions: break
+        case .permissions: Task { await permissions.load() }
         }
     }
 
@@ -380,7 +380,7 @@ struct ContentView: View {
             }
             .help("Rescan  ⌘R")
             .keyboardShortcut("r")
-            .disabled(mode == .permissions || (mode == .storage && vm.isScanning))
+            .disabled(mode == .storage && vm.isScanning)
 
             Button {
                 setDetails(visible: !showDetails)
