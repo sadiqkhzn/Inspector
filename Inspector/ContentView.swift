@@ -22,8 +22,8 @@ final class StorageViewModel: ObservableObject {
     @Published private(set) var disk = DiskSnapshot(totalBytes: 0, freeBytes: 0)
     @Published private(set) var isScanning = false
     @Published private(set) var hasScanned = false
-    @Published var tierFilter: SafetyLevel? = nil
-    @Published var searchText: String = ""
+    @Published var tierFilter: SafetyLevel? = nil { didSet { keepFocusVisible() } }
+    @Published var searchText: String = "" { didSet { keepFocusVisible() } }
     @Published var focusedID: CleanupItem.ID?
     @Published var receipt: TrashReceipt?
     @Published var errorMessage: String?
@@ -146,6 +146,12 @@ final class StorageViewModel: ObservableObject {
         if !failed.isEmpty {
             errorMessage = "Couldn't put back \(failed.joined(separator: ", ")). They're still in the Trash."
         }
+    }
+
+    /// When a search or filter hides the focused item, the details pane follows the first visible one.
+    private func keepFocusVisible() {
+        let visible = visibleItems
+        if !visible.contains(where: { $0.id == focusedID }) { focusedID = visible.first?.id }
     }
 
     private func total(_ items: [CleanupItem]) -> Int64 {

@@ -9,8 +9,8 @@ final class BootViewModel: ObservableObject {
 
     @Published private(set) var items: [BootItem] = []
     @Published private(set) var hasLoaded = false
-    @Published var searchText: String = ""
-    @Published var filter: StatusFilter = .all
+    @Published var searchText: String = "" { didSet { keepFocusVisible() } }
+    @Published var filter: StatusFilter = .all { didSet { keepFocusVisible() } }
     @Published var focusedID: BootItem.ID?
 
     var visibleItems: [BootItem] {
@@ -39,6 +39,12 @@ final class BootViewModel: ObservableObject {
             return
         }
         focusedID = ids[min(max(index + offset, 0), ids.count - 1)]
+    }
+
+    /// When a search or filter hides the focused agent, the details pane follows the first visible one.
+    private func keepFocusVisible() {
+        let visible = visibleItems
+        if !visible.contains(where: { $0.id == focusedID }) { focusedID = visible.first?.id }
     }
 
     private func matches(_ item: BootItem, _ filter: StatusFilter) -> Bool {
@@ -383,7 +389,7 @@ private struct BootIcon: View {
         RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
             .fill(Color.primary.opacity(0.07))
             .overlay(
-                Image(systemName: "bolt.horizontal")
+                Image(systemName: "bolt.fill")
                     .font(.system(size: size * 0.46, weight: .medium))
                     .foregroundStyle(.secondary)
             )
