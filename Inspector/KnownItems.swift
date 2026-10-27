@@ -179,7 +179,7 @@ enum KnownItems {
             .safe, .devTool,
             "Headers for native Node module compilation.",
             "Re-downloads on next native-module install.",
-            verified: true
+            verified: false
         ),
 KnownItemSpec(
             "Antigravity updater cache",
@@ -210,7 +210,7 @@ KnownItemSpec(
             .safe, .cache,
             "Apple Maps and location services cache.",
             "Rebuilds on next use.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Xcode DerivedData",
@@ -242,7 +242,7 @@ KnownItemSpec(
             .safe, .devTool,
             "Caches used by iOS Simulator runtimes.",
             "Rebuilds on next simulator launch.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Microsoft Teams data",
@@ -250,7 +250,7 @@ KnownItemSpec(
             .review, .appData,
             "Teams' sandboxed cache, logs, and session tokens tied to your organization sign-in.",
             "You are signed out and must sign in again through SSO, including any 2FA / conditional-access prompts your workplace enforces. Local chat drafts and queued messages are lost.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Firefox cache",
@@ -274,7 +274,7 @@ KnownItemSpec(
             .safe, .cache,
             "Safari's browser cache. Rebuilt as you browse.",
             "Nothing. Safari rebuilds the cache on next launch.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Microsoft Edge cache",
@@ -377,7 +377,7 @@ KnownItemSpec(
             .safe, .devTool,
             "pnpm's content-addressable store of downloaded packages.",
             "pnpm re-downloads packages on next install.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Bun install cache",
@@ -425,7 +425,7 @@ KnownItemSpec(
             .safe, .devTool,
             "SwiftPM's shared cache of fetched package repositories.",
             "Xcode re-fetches packages on next resolve. Projects untouched.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Composer cache",
@@ -441,7 +441,7 @@ KnownItemSpec(
             .safe, .devTool,
             "RubyGems' cache of downloaded gem files.",
             "gem install re-downloads gems. Installed gems are untouched.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "QuickLook thumbnails",
@@ -449,7 +449,7 @@ KnownItemSpec(
             .safe, .cache,
             "macOS QuickLook preview thumbnails.",
             "Thumbnails regenerate on demand when you preview files.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Diagnostic reports",
@@ -465,7 +465,7 @@ KnownItemSpec(
             .safe, .cache,
             "Historical crash logs for apps and background processes.",
             "Nothing. Fresh crash reports continue to be generated as needed.",
-            verified: true
+            verified: false
         ),
 KnownItemSpec(
             "Xcode Archives",
@@ -481,7 +481,7 @@ KnownItemSpec(
             .safe, .devTool,
             "Simulator-like devices Xcode spins up for Playground execution.",
             "Rebuilt the next time you run a Playground.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "App Store cache",
@@ -489,7 +489,7 @@ KnownItemSpec(
             .safe, .cache,
             "App Store client's download cache and preview assets.",
             "App Store rebuilds the cache on next launch. Downloaded apps are untouched.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "XDG cache",
@@ -613,15 +613,14 @@ KnownItemSpec(
             .safe, .devTool,
             "Conda's cache of downloaded package archives before extraction into envs.",
             "conda install re-downloads archives. Existing environments are untouched.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Jupyter runtime",
             "Library/Jupyter/runtime",
             .safe, .devTool,
             "Jupyter's temporary runtime data (connection files, kernel IDs).",
-            "Nothing. Fresh runtime files are created when you start a kernel.",
-            verified: true
+            "Nothing. Fresh runtime files are created when you start a kernel."
         ),
         KnownItemSpec(
             "GitHub Desktop logs",
@@ -644,8 +643,7 @@ KnownItemSpec(
             ".sdkman/archives",
             .safe, .devTool,
             "SDKMAN's downloaded SDK archives (JDKs, Gradle, Kotlin, etc.) kept after extraction.",
-            "Nothing. Installed SDKs are untouched; archives are only needed for reinstall.",
-            verified: true
+            "Nothing. Installed SDKs are untouched; archives are only needed for reinstall."
         ),
         KnownItemSpec(
             "Volta cache",
@@ -653,7 +651,7 @@ KnownItemSpec(
             .safe, .devTool,
             "Volta's temp directory for in-progress downloads and installs.",
             "Nothing. Installed Node, npm, Yarn versions are kept.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "jenv cache",
@@ -761,7 +759,7 @@ KnownItemSpec(
             .safe, .cache,
             "Sublime Text 4's local index cache.",
             "Sublime rebuilds indexes on next project open.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Nova editor cache",
@@ -984,15 +982,14 @@ KnownItemSpec(
             .safe, .devTool,
             "Google Cloud SDK diagnostic logs.",
             "New logs are written as needed.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "AWS CLI cache",
             ".aws/cli/cache",
             .review, .devTool,
             "AWS CLI's SSO/STS token cache. Holds temporary credentials from recent sign-ins.",
-            "Any in-flight CLI script using these cached credentials fails until you re-authenticate (often via SSO browser flow). Clear when idle; avoid during long-running scripts.",
-            verified: true
+            "Any in-flight CLI script using these cached credentials fails until you re-authenticate (often via SSO browser flow). Clear when idle; avoid during long-running scripts."
         ),
         KnownItemSpec(
             "Terraform plugin cache",
@@ -1000,7 +997,7 @@ KnownItemSpec(
             .safe, .devTool,
             "Terraform's shared provider plugin cache.",
             "Terraform re-downloads providers on next init.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "kubectl cache",
@@ -1008,7 +1005,7 @@ KnownItemSpec(
             .safe, .devTool,
             "kubectl's HTTP discovery cache for Kubernetes API resources.",
             "kubectl rebuilds discovery on next command.",
-            verified: true
+            verified: false
         ),
         KnownItemSpec(
             "Minikube data",
