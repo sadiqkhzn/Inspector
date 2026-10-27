@@ -13,6 +13,17 @@ struct KnownItemSpec {
     /// entry was added from memory and has not been systematically verified
     /// yet.
     let verified: Bool
+    /// Optional environment variable the tool uses to override the default
+    /// install / cache location (e.g. `CARGO_HOME`, `PYENV_ROOT`,
+    /// `GOPATH`). When set and present in the process environment, Scanner
+    /// uses `$envVar / envVarSuffix` instead of the hardcoded `relativePath`.
+    /// GUI apps launched from Finder only see env vars that have been
+    /// published via `launchctl setenv`, so this helps power users without
+    /// hurting the default case.
+    let envVar: String?
+    /// Subpath appended to the env var value. nil means the env var itself
+    /// is the full path.
+    let envVarSuffix: String?
 
     init(
         _ name: String,
@@ -22,7 +33,9 @@ struct KnownItemSpec {
         _ whatItIs: String,
         _ whatHappensIfRemoved: String,
         minBytesToShow: Int64 = 50 * 1024 * 1024,
-        verified: Bool = false
+        verified: Bool = false,
+        envVar: String? = nil,
+        envVarSuffix: String? = nil
     ) {
         self.name = name
         self.relativePath = relativePath
@@ -32,6 +45,8 @@ struct KnownItemSpec {
         self.whatHappensIfRemoved = whatHappensIfRemoved
         self.minBytesToShow = minBytesToShow
         self.verified = verified
+        self.envVar = envVar
+        self.envVarSuffix = envVarSuffix
     }
 }
 
@@ -344,9 +359,10 @@ KnownItemSpec(
             ".gradle/caches",
             .safe, .devTool,
             "Gradle's cache of downloaded dependencies and build state.",
-            "Next Gradle build re-downloads dependencies, otherwise identical."
-        ,
-            verified: true),
+            "Next Gradle build re-downloads dependencies, otherwise identical.",
+            verified: true,
+            envVar: "GRADLE_USER_HOME", envVarSuffix: "caches"
+        ),
         KnownItemSpec(
             "Maven local repository",
             ".m2/repository",
@@ -360,16 +376,18 @@ KnownItemSpec(
             ".npm",
             .safe, .devTool,
             "npm's cache of downloaded packages and tarballs.",
-            "npm re-downloads packages on next install. Nothing else changes."
-        ,
-            verified: true),
+            "npm re-downloads packages on next install. Nothing else changes.",
+            verified: true,
+            envVar: "NPM_CONFIG_CACHE"
+        ),
         KnownItemSpec(
             "Yarn cache",
             "Library/Caches/Yarn",
             .safe, .devTool,
             "Yarn's cache of downloaded packages.",
             "Yarn re-downloads packages on next install.",
-            verified: true
+            verified: true,
+            envVar: "YARN_CACHE_FOLDER"
         ),
         KnownItemSpec(
             "pnpm store",
@@ -393,7 +411,8 @@ KnownItemSpec(
             .safe, .devTool,
             "Deno's cache of downloaded modules.",
             "Deno re-downloads modules on next run.",
-            verified: true
+            verified: true,
+            envVar: "DENO_DIR"
         ),
         KnownItemSpec(
             "Cargo registry cache",
@@ -401,16 +420,18 @@ KnownItemSpec(
             .safe, .devTool,
             "Cargo's cache of downloaded crate archives.",
             "Cargo re-downloads crates on next build. Toolchains are untouched.",
-            verified: true
+            verified: true,
+            envVar: "CARGO_HOME", envVarSuffix: "registry/cache"
         ),
         KnownItemSpec(
             "Go module cache",
             "go/pkg/mod/cache/download",
             .safe, .devTool,
             "Go's cache of downloaded module zips.",
-            "Next 'go build' re-downloads modules. Installed binaries are untouched."
-        ,
-            verified: true),
+            "Next 'go build' re-downloads modules. Installed binaries are untouched.",
+            verified: true,
+            envVar: "GOMODCACHE"
+        ),
         KnownItemSpec(
             "CocoaPods cache",
             "Library/Caches/CocoaPods",
@@ -597,7 +618,8 @@ KnownItemSpec(
             .safe, .devTool,
             "Astral uv's XDG-style cache for Python packages, source distributions, and downloaded interpreters.",
             "uv re-downloads what it needs on next run. Installed tools under ~/.local are untouched.",
-            verified: true
+            verified: true,
+            envVar: "UV_CACHE_DIR"
         ),
         KnownItemSpec(
             "Poetry cache",
@@ -643,7 +665,8 @@ KnownItemSpec(
             ".sdkman/archives",
             .safe, .devTool,
             "SDKMAN's downloaded SDK archives (JDKs, Gradle, Kotlin, etc.) kept after extraction.",
-            "Nothing. Installed SDKs are untouched; archives are only needed for reinstall."
+            "Nothing. Installed SDKs are untouched; archives are only needed for reinstall.",
+            envVar: "SDKMAN_DIR", envVarSuffix: "archives"
         ),
         KnownItemSpec(
             "Volta cache",
@@ -831,7 +854,8 @@ KnownItemSpec(
             .keep, .devTool,
             "Installed Rust toolchains managed by rustup. Each toolchain is a full compiler install, often 500 MB to 1.5 GB.",
             "You lose every installed Rust toolchain. rustup can reinstall them, but each is a sizeable download. Only clear if you no longer use Rust.",
-            verified: true
+            verified: true,
+            envVar: "RUSTUP_HOME", envVarSuffix: "toolchains"
         ),
         KnownItemSpec(
             "nvm Node versions",
@@ -839,7 +863,8 @@ KnownItemSpec(
             .keep, .devTool,
             "Node versions installed via nvm.",
             "You lose installed Node versions until re-installed via nvm.",
-            verified: true
+            verified: true,
+            envVar: "NVM_DIR", envVarSuffix: "versions/node"
         ),
         KnownItemSpec(
             "fnm Node versions",
@@ -854,7 +879,8 @@ KnownItemSpec(
             .keep, .devTool,
             "Python versions installed via pyenv.",
             "You lose installed Python versions until re-built.",
-            verified: true
+            verified: true,
+            envVar: "PYENV_ROOT", envVarSuffix: "versions"
         ),
         KnownItemSpec(
             "pipx venvs",
