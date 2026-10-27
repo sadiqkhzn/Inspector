@@ -1427,5 +1427,107 @@ KnownItemSpec(
             "Rebuilds as you open spreadsheets. Documents and sign-in are untouched.",
             verified: true
         ),
+
+        // ─── Added from mac-cleanup-py cross-reference ──────────────────
+        // Each entry below has a 1-to-1 path match in
+        // https://github.com/mac-cleanup/mac-cleanup-py's default_modules.py
+        // and ships verified: true.
+
+        KnownItemSpec(
+            "Android SDK cache",
+            ".android/cache",
+            .safe, .devTool,
+            "Android SDK's cache of downloaded platform packages and build tooling fragments.",
+            "Android Studio and sdkmanager re-download what they need on next use. Installed SDKs, AVDs, and projects are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Anaconda packages",
+            "anaconda3/pkgs",
+            .safe, .devTool,
+            "Anaconda distribution's cache of downloaded package archives before extraction into environments.",
+            "conda install re-downloads archives. Existing environments are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Minecraft logs",
+            "Library/Application Support/minecraft/logs",
+            .safe, .cache,
+            "Vanilla Minecraft client's diagnostic logs.",
+            "Nothing. New logs are written as needed. Worlds and settings are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Minecraft crash reports",
+            "Library/Application Support/minecraft/crash-reports",
+            .safe, .cache,
+            "Minecraft's crash report dumps.",
+            "Nothing. Only useful for after-the-fact troubleshooting.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Minecraft web cache",
+            "Library/Application Support/minecraft/webcache",
+            .safe, .cache,
+            "Minecraft launcher's HTTP cache for store assets and news.",
+            "Launcher rebuilds the cache on next launch.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Lunar Client game cache",
+            ".lunarclient/game-cache",
+            .safe, .cache,
+            "Lunar Client's cache of downloaded game assets and mod artifacts.",
+            "Lunar Client re-downloads what it needs on next launch. Settings and accounts are kept.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Lunar Client launcher cache",
+            ".lunarclient/launcher-cache",
+            .safe, .cache,
+            "Lunar Client launcher's local cache.",
+            "Rebuilds on next launch.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Lunar Client logs",
+            ".lunarclient/logs",
+            .safe, .cache,
+            "Lunar Client's diagnostic logs.",
+            "Nothing. New logs are written as needed.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "EA app in-game overlay cache",
+            "Library/Application Support/Electronic Arts/EA app/IGOCache",
+            .safe, .cache,
+            "EA app in-game overlay (IGO) runtime cache.",
+            "EA app rebuilds the cache. Installed games and sign-in are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "EA app logs",
+            "Library/Application Support/Electronic Arts/EA app/Logs",
+            .safe, .cache,
+            "EA app's diagnostic logs.",
+            "Nothing. New logs are written as needed.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "EA app offline cache",
+            "Library/Application Support/Electronic Arts/EA app/OfflineCache",
+            .safe, .cache,
+            "EA app's offline mode cache of catalog and entitlement data.",
+            "EA app re-syncs catalog on next connect. Installed games and sign-in are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "EA Desktop browser cache",
+            "Library/Application Support/Electronic Arts/EA app/CEF/BrowserCache/EADesktop/Cache",
+            .safe, .cache,
+            "EA Desktop's embedded Chromium (CEF) HTTP cache for the store UI.",
+            "Rebuilds as you browse the EA app store.",
+            verified: true
+        ),
     ]
 }
