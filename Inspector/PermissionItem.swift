@@ -63,6 +63,29 @@ enum PermissionService: String, CaseIterable, Hashable {
         }
     }
 
+    /// Deep-link that bounces straight into System Settings → Privacy & Security
+    /// for this specific service. Verified against the macOS 13+ URL scheme —
+    /// older macOS versions open the parent Privacy pane instead, which is a
+    /// graceful fallback rather than an error.
+    var settingsURL: URL? {
+        let anchor: String
+        switch self {
+        case .camera:          anchor = "Privacy_Camera"
+        case .microphone:      anchor = "Privacy_Microphone"
+        case .screenRecording: anchor = "Privacy_ScreenCapture"
+        case .accessibility:   anchor = "Privacy_Accessibility"
+        case .location:        anchor = "Privacy_LocationServices"
+        case .fullDiskAccess:  anchor = "Privacy_AllFiles"
+        case .automation:      anchor = "Privacy_Automation"
+        case .inputMonitoring: anchor = "Privacy_ListenEvent"
+        case .contacts:        anchor = "Privacy_Contacts"
+        case .calendar:        anchor = "Privacy_Calendars"
+        case .photos:          anchor = "Privacy_Photos"
+        case .reminders:       anchor = "Privacy_Reminders"
+        }
+        return URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)")
+    }
+
     static func from(tccService: String) -> PermissionService? {
         PermissionService.allCases.first { $0.rawValue == tccService }
     }
