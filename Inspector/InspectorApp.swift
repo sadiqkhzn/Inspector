@@ -9,27 +9,38 @@ struct InspectorApp: App {
         }
         .defaultSize(width: 1080, height: 760)
         .windowResizability(.contentMinSize)
-        .windowToolbarStyle(.unified(showsTitle: true))
+        // The mode tabs take the title's place; the window keeps its name for the Window menu.
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
             SearchCommands()
-            BootWindowCommand()
+            ModeCommands()
         }
-
-        Window("Boot items", id: "boot-items") {
-            BootView()
-        }
-        .defaultSize(width: 760, height: 560)
     }
 }
 
-struct BootWindowCommand: Commands {
-    @Environment(\.openWindow) private var openWindow
+struct InspectorModeKey: FocusedValueKey {
+    typealias Value = Binding<InspectorMode>
+}
+
+extension FocusedValues {
+    var inspectorMode: Binding<InspectorMode>? {
+        get { self[InspectorModeKey.self] }
+        set { self[InspectorModeKey.self] = newValue }
+    }
+}
+
+// View ▸ Storage (⌘1) / Boot (⌘2) / Permissions (⌘3), like Finder and Mail.
+struct ModeCommands: Commands {
+    @FocusedBinding(\.inspectorMode) private var mode
 
     var body: some Commands {
-        CommandGroup(after: .windowArrangement) {
+        CommandGroup(before: .toolbar) {
+            ForEach(InspectorMode.allCases) { option in
+                Button(option.title) { mode = option }
+                    .keyboardShortcut(option.shortcut, modifiers: .command)
+                    .disabled(mode == nil)
+            }
             Divider()
-            Button("Boot items") { openWindow(id: "boot-items") }
-                .keyboardShortcut("b", modifiers: [.command, .option])
         }
     }
 }
