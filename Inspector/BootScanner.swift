@@ -1,28 +1,54 @@
 import Foundation
 
-/// Reads the plists under ~/Library/LaunchAgents (user-level only in v0.2;
-/// system-wide `/Library/LaunchAgents` and `/Library/LaunchDaemons` need
-/// admin access and are deferred to a later version).
+/// Reads the three plist directories macOS uses for launchd jobs:
 ///
-/// Everything is pure plist reading via `PropertyListSerialization` — no
-/// shell execution, no modifications, no sudo. Users still own the files.
+/// - `~/Library/LaunchAgents/` — user-level agents (login-triggered, this user)
+/// - `/Library/LaunchAgents/` — system-wide agents (login-triggered, any user)
+/// - `/Library/LaunchDaemons/` — system-wide daemons (boot-triggered, root)
+///
+/// `/System/Library/LaunchAgents/` and `/System/Library/LaunchDaemons/` are
+/// Apple's own and deliberately not scanned — users shouldn't touch them,
+/// and showing them would drown out the actionable third-party ones.
+///
+/// Everything is pure plist reading via `PropertyListSerialization`. No shell
+/// execution, no modifications, no sudo. Both `/Library/LaunchAgents` and
+/// `/Library/LaunchDaemons` are world-readable, so no Full Disk Access is
+/// required for the plist listings themselves.
 enum BootScanner {
 
     static func scan() -> [BootItem] {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        let userAgentsDir = home.appendingPathComponent("Library/LaunchAgents")
-        return read(dir: userAgentsDir)
-            .sorted { lhs, rhs in
-                // Enabled first, then by owner, then by label
-                if lhs.enabled != rhs.enabled { return lhs.enabled && !rhs.enabled }
-                if lhs.owner.lowercased() != rhs.owner.lowercased() {
-                    return lhs.owner.localizedCaseInsensitiveCompare(rhs.owner) == .orderedAscending
-                }
-                return lhs.label.localizedCaseInsensitiveCompare(rhs.label) == .orderedAscending
+        let sources: [(BootSource, URL)] = [
+            (.userAgent,    home.appendingPathComponent("Library/LaunchAgents")),
+            (.systemAgent,  URL(fileURLWithPath: "/Library/LaunchAgents")),
+            (.systemDaemon, URL(fileURLWithPath: "/Library/LaunchDaemons"))
+        ]
+
+        var items: [BootItem] = []
+        for (source, dir) in sources {
+            items.append(contentsOf: read(dir: dir, source: source))
+        }
+
+        return items.sorted { lhs, rhs in
+            // Enabled first, then by source severity (daemons loudest), then owner, then label.
+            if lhs.enabled != rhs.enabled { return lhs.enabled && !rhs.enabled }
+            if lhs.source != rhs.source  { return sortOrder(lhs.source) < sortOrder(rhs.source) }
+            if lhs.owner.lowercased() != rhs.owner.lowercased() {
+                return lhs.owner.localizedCaseInsensitiveCompare(rhs.owner) == .orderedAscending
             }
+            return lhs.label.localizedCaseInsensitiveCompare(rhs.label) == .orderedAscending
+        }
     }
 
-    private static func read(dir: URL) -> [BootItem] {
+    private static func sortOrder(_ source: BootSource) -> Int {
+        switch source {
+        case .systemDaemon: return 0
+        case .systemAgent:  return 1
+        case .userAgent:    return 2
+        }
+    }
+
+    private static func read(dir: URL, source: BootSource) -> [BootItem] {
         guard let urls = try? FileManager.default.contentsOfDirectory(
             at: dir,
             includingPropertiesForKeys: nil,
@@ -31,11 +57,11 @@ enum BootScanner {
 
         return urls.compactMap { url in
             guard url.pathExtension == "plist" else { return nil }
-            return parse(plistAt: url)
+            return parse(plistAt: url, source: source)
         }
     }
 
-    private static func parse(plistAt url: URL) -> BootItem? {
+    private static func parse(plistAt url: URL, source: BootSource) -> BootItem? {
         guard let data = try? Data(contentsOf: url),
               let any = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
               let dict = any as? [String: Any]
@@ -66,7 +92,8 @@ enum BootScanner {
             runAtLoad: runAtLoad,
             keepAlive: keepAlive,
             disabled: disabled,
-            owner: inferOwner(label: label, programDisplay: display)
+            owner: inferOwner(label: label, programDisplay: display),
+            source: source
         )
     }
 
