@@ -181,28 +181,38 @@ private func reveal(_ item: CleanupItem) {
 
 struct ContentView: View {
     @StateObject private var vm = StorageViewModel()
-    @State private var showInspector = true
+    @State private var showDetails = true
+    @FocusState private var searchFocused: Bool
     @State private var confirmTrash = false
     @State private var quickLookURL: URL?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        NavigationStack {
+        // A plain column rather than `.inspector`, which claims the trailing end of the
+        // toolbar; this keeps one full-width toolbar above both the list and the details.
+        HStack(spacing: 0) {
             content
-                .navigationTitle("Inspector")
-                .toolbar { toolbar }
-                .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name, path or app")
-                .inspector(isPresented: $showInspector) {
-                    DetailsPane(
-                        item: vm.focusedItem,
-                        foundBytes: vm.foundBytes,
-                        onToggle: { if let id = vm.focusedID { withAnimation(motion(reduceMotion)) { vm.toggle(id) } } },
-                        onReveal: { if let item = vm.focusedItem { reveal(item) } },
-                        onQuickLook: { quickLookURL = vm.focusedItem?.url }
-                    )
-                    .inspectorColumnWidth(min: 280, ideal: 320, max: 420)
-                }
+            if showDetails {
+                Divider()
+                DetailsPane(
+                    item: vm.focusedItem,
+                    foundBytes: vm.foundBytes,
+                    onToggle: { if let id = vm.focusedID { withAnimation(motion(reduceMotion)) { vm.toggle(id) } } },
+                    onReveal: { if let item = vm.focusedItem { reveal(item) } },
+                    onQuickLook: { quickLookURL = vm.focusedItem?.url },
+                    onClose: { setDetails(visible: false) }
+                )
+                .frame(width: 320)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .transition(.move(edge: .trailing))
+            }
         }
+        .navigationTitle("Inspector")
+        .toolbar { toolbar }
+        .background {
+            ShortcutButton(key: "i", modifiers: [.command, .option]) { setDetails(visible: !showDetails) }
+        }
+        .focusedSceneValue(\.focusSearch, focusSearch)
         .quickLookPreview($quickLookURL)
         .confirmationDialog(
             "Move \(vm.selectedItems.count) items to the Trash?",
@@ -227,7 +237,10 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItem(placement: .principal) {
+            ToolbarSearchField(text: $vm.searchText, isFocused: $searchFocused)
+        }
+        ToolbarItemGroup(placement: .primaryAction) {
             Button {
                 Task { await vm.refresh() }
             } label: {
@@ -237,19 +250,27 @@ struct ContentView: View {
                     Label("Rescan", systemImage: "arrow.clockwise")
                 }
             }
-            .help("Rescan (⌘R)")
+            .help("Rescan  ⌘R")
             .keyboardShortcut("r")
             .disabled(vm.isScanning)
-        }
-        ToolbarItem(placement: .primaryAction) {
+
             Button {
-                withAnimation(motion(reduceMotion)) { showInspector.toggle() }
+                setDetails(visible: !showDetails)
             } label: {
-                Label("Details", systemImage: "sidebar.right")
+                Label(showDetails ? "Hide Details" : "Show Details", systemImage: "sidebar.right")
             }
-            .help("Show or hide details (⌥⌘I)")
-            .keyboardShortcut("i", modifiers: [.command, .option])
+            .help(showDetails ? "Hide details  ⌥⌘I" : "Show details  ⌥⌘I")
         }
+    }
+
+    private func focusSearch() {
+        searchFocused = true
+        // Focus can't always cross into a toolbar item, so also hand the field first responder directly.
+        DispatchQueue.main.async { focusToolbarTextField() }
+    }
+
+    private func setDetails(visible: Bool) {
+        withAnimation(motion(reduceMotion)) { showDetails = visible }
     }
 
     @ViewBuilder
@@ -265,7 +286,12 @@ struct ContentView: View {
                 if vm.visibleItems.isEmpty {
                     noMatches
                 } else {
-                    ItemList(vm: vm, onQuickLook: { quickLookURL = $0.url })
+                    ItemList(
+                        vm: vm,
+                        onQuickLook: { quickLookURL = $0.url },
+                        onOpenDetails: { if !showDetails { setDetails(visible: true) } },
+                        bottomInset: barState == 0 ? 12 : 84
+                    )
                 }
             }
         }
@@ -551,6 +577,9 @@ private struct TierPicker: View {
 private struct ItemList: View {
     @ObservedObject var vm: StorageViewModel
     let onQuickLook: (CleanupItem) -> Void
+    let onOpenDetails: () -> Void
+    /// Room kept below the last row so the floating bar never covers it; only while the bar is up.
+    let bottomInset: CGFloat
     @FocusState private var isFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -566,6 +595,7 @@ private struct ItemList: View {
                             onFocus: {
                                 vm.focusedID = item.id
                                 isFocused = true
+                                onOpenDetails()
                             },
                             onQuickLook: { onQuickLook(item) }
                         )
@@ -575,7 +605,8 @@ private struct ItemList: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.top, 4)
-                .padding(.bottom, 96)
+                .padding(.bottom, bottomInset)
+                .animation(motion(reduceMotion), value: bottomInset)
             }
             .focusable()
             .focused($isFocused)
@@ -761,9 +792,35 @@ private struct DetailsPane: View {
     let onToggle: () -> Void
     let onReveal: () -> Void
     let onQuickLook: () -> Void
+    let onClose: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Details")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20, height: 20)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help("Hide details  ⌥⌘I")
+                .accessibilityLabel("Hide details")
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 32)
+            Divider()
+            itemDetails
+        }
+    }
+
+    private var itemDetails: some View {
         Group {
             if let item {
                 VStack(spacing: 0) {
@@ -1039,5 +1096,109 @@ private struct EmptyState: View {
         } actions: {
             Button("Scan Again", action: rescan)
         }
+    }
+}
+
+// MARK: - Toolbar
+
+private struct ToolbarSearchField: View {
+    @Binding var text: String
+    var isFocused: FocusState<Bool>.Binding
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
+            TextField("Filter by name, path or app", text: $text)
+                .textFieldStyle(.plain)
+                .font(.callout)
+                .focused(isFocused)
+                .onExitCommand {
+                    text = ""
+                    isFocused.wrappedValue = false
+                }
+            if text.isEmpty {
+                Text("⌘F")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            } else {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear")
+                .accessibilityLabel("Clear search")
+            }
+        }
+        .padding(.horizontal, 9)
+        .frame(width: 340, height: 26)
+        .modifier(SearchFieldChrome())
+    }
+}
+
+// On macOS 26 the toolbar already draws a glass capsule around each item.
+private struct SearchFieldChrome: ViewModifier {
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) {
+            content
+        } else {
+            field(content)
+        }
+        #else
+        field(content)
+        #endif
+    }
+
+    private func field(_ content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
+            )
+    }
+}
+
+@MainActor
+private func focusToolbarTextField() {
+    guard let window = NSApp.keyWindow ?? NSApp.mainWindow else { return }
+    func editableField(in view: NSView) -> NSTextField? {
+        if let field = view as? NSTextField, field.isEditable { return field }
+        for subview in view.subviews {
+            if let field = editableField(in: subview) { return field }
+        }
+        return nil
+    }
+    for item in window.toolbar?.items ?? [] {
+        if let view = item.view, let field = editableField(in: view) {
+            window.makeFirstResponder(field)
+            return
+        }
+    }
+}
+
+// An invisible button that only exists to carry a keyboard shortcut.
+private struct ShortcutButton: View {
+    let key: KeyEquivalent
+    let modifiers: EventModifiers
+    let action: () -> Void
+
+    var body: some View {
+        Button("", action: action)
+            .keyboardShortcut(key, modifiers: modifiers)
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }
