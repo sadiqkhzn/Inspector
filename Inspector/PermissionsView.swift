@@ -5,7 +5,17 @@ import SwiftUI
 /// onboarding state when Full Disk Access hasn't been granted so neither
 /// database is readable.
 struct PermissionsView: View {
-    @StateObject private var vm = PermissionsViewModel()
+    @ObservedObject var vm: PermissionsViewModel
+
+    init(vm: PermissionsViewModel? = nil) {
+        // Prefer injection (so ContentView can share the vm with the toolbar
+        // search field); fall back to a local one when the view is used alone.
+        if let vm {
+            _vm = ObservedObject(wrappedValue: vm)
+        } else {
+            _vm = ObservedObject(wrappedValue: PermissionsViewModel())
+        }
+    }
 
     var body: some View {
         Group {
@@ -149,9 +159,20 @@ final class PermissionsViewModel: ObservableObject {
     @Published private(set) var items: [PermissionItem] = []
     @Published private(set) var hasFullDiskAccess = false
     @Published private(set) var hasScanned = false
+    @Published var searchText: String = ""
+
+    private var filtered: [PermissionItem] {
+        guard !searchText.isEmpty else { return items }
+        let needle = searchText
+        return items.filter { item in
+            item.appName.localizedCaseInsensitiveContains(needle)
+                || item.bundleID.localizedCaseInsensitiveContains(needle)
+                || item.service.displayName.localizedCaseInsensitiveContains(needle)
+        }
+    }
 
     var sections: [PermissionsSection] {
-        let grouped = Dictionary(grouping: items, by: \.service)
+        let grouped = Dictionary(grouping: filtered, by: \.service)
         return PermissionService.allCases.compactMap { service in
             guard let items = grouped[service], !items.isEmpty else { return nil }
             return PermissionsSection(

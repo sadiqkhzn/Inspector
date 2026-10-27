@@ -231,6 +231,7 @@ enum InspectorMode: String, CaseIterable, Identifiable {
 struct ContentView: View {
     @StateObject private var vm = StorageViewModel()
     @StateObject private var boot = BootViewModel()
+    @StateObject private var permissions = PermissionsViewModel()
     @SceneStorage("mode") private var mode: InspectorMode = .storage
     // Closed until the user asks for it: clicking a row, the toolbar toggle, or ⌥⌘I.
     @State private var showDetails = false
@@ -254,7 +255,7 @@ struct ContentView: View {
                         onQuickLook: { quickLookURL = $0.plistURL }
                     )
                 case .permissions:
-                    PermissionsPlaceholder()
+                    PermissionsView(vm: permissions)
                 }
             }
             .transition(.opacity)
@@ -339,7 +340,7 @@ struct ContentView: View {
         switch mode {
         case .storage:     return $vm.searchText
         case .boot:        return $boot.searchText
-        case .permissions: return .constant("")
+        case .permissions: return $permissions.searchText
         }
     }
 
@@ -366,7 +367,6 @@ struct ContentView: View {
         }
         ToolbarItem(placement: .principal) {
             ToolbarSearchField(text: searchText, prompt: mode.searchPrompt, isFocused: $searchFocused)
-                .disabled(mode == .permissions)
         }
         ToolbarItemGroup(placement: .primaryAction) {
             Button {
