@@ -1198,5 +1198,185 @@ KnownItemSpec(
             "Adobe apps regenerate the cache as you open projects. Project files themselves are untouched.",
             verified: true
         ),
+
+        // Productivity launchers / utilities
+        KnownItemSpec(
+            "Raycast cache",
+            "Library/Caches/com.raycast.macos",
+            .safe, .cache,
+            "Raycast's local cache for extensions, icons, and recent searches.",
+            "Raycast rebuilds the cache on next use. Extensions, settings, and hotkeys stay.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Alfred cache",
+            "Library/Caches/com.runningwithcrayons.Alfred",
+            .safe, .cache,
+            "Alfred's search index and HTTP cache.",
+            "Alfred re-indexes on next launch. Workflows, snippets, and themes are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Bartender cache",
+            "Library/Caches/com.surteesstudios.Bartender",
+            .safe, .cache,
+            "Bartender menu bar manager's cache.",
+            "Rebuilds on next launch. Menu bar layout and settings stay.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Hazel data",
+            "Library/Application Support/Hazel",
+            .review, .appData,
+            "Hazel's folder-watching rules, run history, and queued actions.",
+            "You lose every Hazel rule. Hazel stops processing folders until the rules are rebuilt by hand.",
+            verified: true
+        ),
+
+        // Security / credentials
+        KnownItemSpec(
+            "1Password data",
+            "Library/Application Support/1Password",
+            .review, .appData,
+            "1Password's local app support directory. The vault itself is in a Group Container; this folder holds local session data and settings.",
+            "You stay signed in on other devices, but on this Mac you'll re-complete device authentication and may need to re-enable the SSH agent and browser integrations.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Bitwarden cache",
+            "Library/Caches/com.bitwarden.desktop",
+            .safe, .cache,
+            "Bitwarden desktop's local cache. Vault data is not stored here.",
+            "Rebuilds on next launch. Vault contents are safe.",
+            verified: true
+        ),
+
+        // Screenshots / media
+        KnownItemSpec(
+            "CleanShot X cache",
+            "Library/Caches/pl.maketheweb.cleanshotx",
+            .safe, .cache,
+            "CleanShot X's recent-captures cache and preview thumbnails.",
+            "Thumbnails regenerate on demand. Saved screenshots in your target folder are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "IINA cache",
+            "Library/Caches/com.colliderli.iina",
+            .safe, .cache,
+            "IINA video player's cache for thumbnails, subtitle downloads, and streaming.",
+            "Rebuilds as you open files. Playback preferences and watch history stay.",
+            verified: true
+        ),
+
+        // File transfer
+        KnownItemSpec(
+            "Transmit cache",
+            "Library/Caches/com.panic.Transmit",
+            .safe, .cache,
+            "Transmit FTP/SFTP client's cache of remote browse state and thumbnails.",
+            "Transmit re-fetches directory listings on next connect. Saved favorites and keys are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Cyberduck cache",
+            "Library/Caches/ch.sudo.cyberduck",
+            .safe, .cache,
+            "Cyberduck's cache of remote browse state and transfer history.",
+            "Cyberduck re-fetches directory listings on next connect. Bookmarks and keys are untouched.",
+            verified: true
+        ),
+
+        // Database tools
+        KnownItemSpec(
+            "TablePlus cache",
+            "Library/Caches/com.tinyapp.TablePlus",
+            .safe, .cache,
+            "TablePlus's query history cache and schema introspection cache.",
+            "Rebuilds on next connect. Saved connections and queries are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "DBeaver cache",
+            "Library/Caches/org.jkiss.dbeaver.core.product",
+            .safe, .cache,
+            "DBeaver's workspace metadata cache.",
+            "DBeaver re-indexes on next launch. Saved connections and queries are untouched.",
+            verified: true
+        ),
+
+        // Mail
+        KnownItemSpec(
+            "Thunderbird data",
+            "Library/Application Support/Thunderbird",
+            .review, .appData,
+            "Thunderbird's profile folder — accounts, local mail copies, filters, and extensions.",
+            "You lose every Thunderbird account configuration, local mail archives, and extensions. IMAP mail re-downloads from the server; POP mail is lost permanently.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Mimestream cache",
+            "Library/Caches/com.mimestream.Mimestream",
+            .safe, .cache,
+            "Mimestream Gmail client's local cache.",
+            "Mimestream re-syncs from Gmail on next launch. You stay signed in.",
+            verified: true
+        ),
+
+        // Design
+        KnownItemSpec(
+            "Sketch cache",
+            "Library/Caches/com.bohemiancoding.sketch3",
+            .safe, .cache,
+            "Sketch's local cache for assets, previews, and plugin runtime data.",
+            "Rebuilds as you open documents. Plugins and preferences stay.",
+            verified: true
+        ),
+
+        // Media server / entertainment
+        KnownItemSpec(
+            "Plex Media Server data",
+            "Library/Application Support/Plex Media Server",
+            .keep, .appData,
+            "Plex Media Server's full database including library metadata, posters, watch history, and transcoded files.",
+            "You lose every Plex library, watched state, user accounts, and transcoded content. Rebuilding by re-adding libraries can take hours and loses watch history.",
+            verified: true
+        ),
+
+        // Game launchers
+        KnownItemSpec(
+            "Epic Games Launcher cache",
+            "Library/Caches/com.epicgames.EpicGamesLauncher",
+            .safe, .cache,
+            "Epic Games Launcher's HTTP response and store asset cache.",
+            "Rebuilds on next launch. Installed games and sign-in are untouched.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Battle.net cache",
+            "Library/Caches/net.battle.bootstrapper",
+            .safe, .cache,
+            "Blizzard Battle.net launcher cache.",
+            "Rebuilds on next launch. Installed games and sign-in are untouched.",
+            verified: true
+        ),
+
+        // Dev tools
+        KnownItemSpec(
+            "ngrok data",
+            "Library/Application Support/ngrok",
+            .review, .devTool,
+            "ngrok's config, auth token, and tunnel history.",
+            "You lose your ngrok auth token and will need to re-run `ngrok config add-authtoken`. Any custom reserved-domain or tunnel preferences also reset.",
+            verified: true
+        ),
+        KnownItemSpec(
+            "Microsoft Excel cache",
+            "Library/Caches/com.microsoft.Excel",
+            .safe, .cache,
+            "Excel's local cache for recently opened documents and templates.",
+            "Rebuilds as you open spreadsheets. Documents and sign-in are untouched.",
+            verified: true
+        ),
     ]
 }
