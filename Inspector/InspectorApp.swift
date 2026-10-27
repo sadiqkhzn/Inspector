@@ -9,7 +9,8 @@ struct InspectorApp: App {
         }
         .defaultSize(width: 1080, height: 760)
         .windowResizability(.contentMinSize)
-        .windowToolbarStyle(.unified(showsTitle: true))
+        // The mode tabs take the title's place; the window keeps its name for the Window menu.
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
             SearchCommands()
             ModeCommands()
@@ -28,7 +29,7 @@ extension FocusedValues {
     }
 }
 
-// View ▸ Storage (⌘1) / Boot (⌘2), like Finder and Mail.
+// View ▸ Storage (⌘1) / Boot (⌘2) / Permissions (⌘3), like Finder and Mail.
 struct ModeCommands: Commands {
     @FocusedBinding(\.inspectorMode) private var mode
 

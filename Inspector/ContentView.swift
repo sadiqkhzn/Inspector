@@ -199,27 +199,31 @@ private func reveal(_ item: CleanupItem) {
 enum InspectorMode: String, CaseIterable, Identifiable {
     case storage
     case boot
+    case permissions
 
     var id: Self { self }
 
     var title: String {
         switch self {
-        case .storage: return "Storage"
-        case .boot:    return "Boot"
+        case .storage:     return "Storage"
+        case .boot:        return "Boot"
+        case .permissions: return "Permissions"
         }
     }
 
     var shortcut: KeyEquivalent {
         switch self {
-        case .storage: return "1"
-        case .boot:    return "2"
+        case .storage:     return "1"
+        case .boot:        return "2"
+        case .permissions: return "3"
         }
     }
 
     var searchPrompt: String {
         switch self {
-        case .storage: return "Filter by name, path or app"
-        case .boot:    return "Filter by label, app or program"
+        case .storage:     return "Filter by name, path or app"
+        case .boot:        return "Filter by label, app or program"
+        case .permissions: return "Filter by app"
         }
     }
 }
@@ -249,6 +253,8 @@ struct ContentView: View {
                         onOpenDetails: { if !showDetails { setDetails(visible: true) } },
                         onQuickLook: { quickLookURL = $0.plistURL }
                     )
+                case .permissions:
+                    PermissionsPlaceholder()
                 }
             }
             .transition(.opacity)
@@ -321,20 +327,27 @@ struct ContentView: View {
                 onQuickLook: { quickLookURL = boot.focusedItem?.plistURL },
                 onClose: { setDetails(visible: false) }
             )
+        case .permissions:
+            VStack(spacing: 0) {
+                DetailsHeader(onClose: { setDetails(visible: false) })
+                ContentUnavailableView("Nothing to show yet", systemImage: "hand.raised")
+            }
         }
     }
 
     private var searchText: Binding<String> {
         switch mode {
-        case .storage: return $vm.searchText
-        case .boot:    return $boot.searchText
+        case .storage:     return $vm.searchText
+        case .boot:        return $boot.searchText
+        case .permissions: return .constant("")
         }
     }
 
     private func rescan() {
         switch mode {
-        case .storage: Task { await vm.refresh() }
-        case .boot:    withAnimation(motion(reduceMotion)) { boot.load() }
+        case .storage:     Task { await vm.refresh() }
+        case .boot:        withAnimation(motion(reduceMotion)) { boot.load() }
+        case .permissions: break
         }
     }
 
@@ -349,10 +362,11 @@ struct ContentView: View {
             .pickerStyle(.segmented)
             .labelsHidden()
             .fixedSize()
-            .help("Storage  ⌘1 · Boot  ⌘2")
+            .help("Storage  ⌘1 · Boot  ⌘2 · Permissions  ⌘3")
         }
         ToolbarItem(placement: .principal) {
             ToolbarSearchField(text: searchText, prompt: mode.searchPrompt, isFocused: $searchFocused)
+                .disabled(mode == .permissions)
         }
         ToolbarItemGroup(placement: .primaryAction) {
             Button {
@@ -366,7 +380,7 @@ struct ContentView: View {
             }
             .help("Rescan  ⌘R")
             .keyboardShortcut("r")
-            .disabled(mode == .storage && vm.isScanning)
+            .disabled(mode == .permissions || (mode == .storage && vm.isScanning))
 
             Button {
                 setDetails(visible: !showDetails)
@@ -1197,6 +1211,19 @@ private struct FloatingCapsule: ViewModifier {
 }
 
 // MARK: - States
+
+// Permissions (v0.3) isn't built yet; the tab says so plainly rather than showing an empty list.
+private struct PermissionsPlaceholder: View {
+    var body: some View {
+        ContentUnavailableView {
+            Label("Permissions is coming in v0.3", systemImage: "hand.raised")
+        } description: {
+            Text("See which apps can use your microphone, camera and screen recording, and when they last did.")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .textBackgroundColor))
+    }
+}
 
 private struct ScanningState: View {
     var body: some View {
