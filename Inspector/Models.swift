@@ -40,6 +40,7 @@ struct CleanupItem: Identifiable, Hashable {
     let whatHappensIfRemoved: String
     let owner: ItemOwner
     let lastModified: Date?
+    let verified: Bool
     var selected: Bool = false
 
     var id: String { url.path }

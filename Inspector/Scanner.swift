@@ -21,7 +21,8 @@ enum Scanner {
                     whatItIs: spec.whatItIs,
                     whatHappensIfRemoved: spec.whatHappensIfRemoved,
                     owner: Owners.owner(forRelativePath: spec.relativePath),
-                    lastModified: usage.lastModified
+                    lastModified: usage.lastModified,
+                    verified: spec.verified
                 )
             )
         }
