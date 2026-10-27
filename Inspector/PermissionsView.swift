@@ -95,6 +95,19 @@ private struct SectionView: View {
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(Capsule().fill(Color.secondary.opacity(0.15)))
                     .foregroundStyle(.secondary)
+                Spacer()
+                if let url = section.service.settingsURL {
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Label("Open in Settings", systemImage: "arrow.up.right.square")
+                            .labelStyle(.titleAndIcon)
+                            .font(.caption)
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .help("Open \(section.service.displayName) in System Settings → Privacy & Security")
+                }
             }
             VStack(spacing: 0) {
                 ForEach(section.items) { item in
