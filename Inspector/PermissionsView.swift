@@ -78,7 +78,11 @@ struct PermissionsView: View {
             LazyVStack(alignment: .leading, spacing: 20) {
                 summary
                 ForEach(vm.sections) { section in
-                    SectionView(section: section)
+                    SectionView(
+                        section: section,
+                        focusedID: vm.focusedID,
+                        onFocus: { vm.focusedID = $0 }
+                    )
                 }
             }
             .padding(.horizontal, 20)
@@ -130,6 +134,8 @@ struct PermissionsView: View {
 
 private struct SectionView: View {
     let section: PermissionsSection
+    let focusedID: PermissionItem.ID?
+    let onFocus: (PermissionItem.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -174,7 +180,8 @@ private struct SectionView: View {
     }
 
     private func row(_ item: PermissionItem) -> some View {
-        HStack(spacing: 10) {
+        let isFocused = item.id == focusedID
+        return HStack(spacing: 10) {
             AppIcon(bundleID: item.bundleID)
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.appName).font(.body).lineLimit(1).truncationMode(.tail)
@@ -193,6 +200,9 @@ private struct SectionView: View {
             }
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
+        .background(isFocused ? Color.accentColor.opacity(0.12) : .clear)
+        .contentShape(Rectangle())
+        .onTapGesture { onFocus(item.id) }
     }
 }
 
@@ -252,6 +262,11 @@ final class PermissionsViewModel: ObservableObject {
     @Published private(set) var hasFullDiskAccess = false
     @Published private(set) var hasScanned = false
     @Published var searchText: String = ""
+    @Published var focusedID: PermissionItem.ID?
+
+    var focusedItem: PermissionItem? {
+        items.first { $0.id == focusedID }
+    }
 
     private var filtered: [PermissionItem] {
         guard !searchText.isEmpty else { return items }
@@ -291,4 +306,85 @@ struct PermissionsSection: Identifiable {
     let service: PermissionService
     let items: [PermissionItem]
     var id: String { service.rawValue }
+}
+
+// MARK: - Details pane
+
+struct PermissionsDetailsPane: View {
+    let item: PermissionItem?
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            DetailsHeader(onClose: onClose)
+            Divider()
+            if let item {
+                content(for: item)
+            } else {
+                emptyState
+            }
+        }
+    }
+
+    private var emptyState: some View {
+        ContentUnavailableView(
+            "No row selected",
+            systemImage: "hand.raised",
+            description: Text("Click any permission row to see its full details here.")
+        )
+    }
+
+    private func content(for item: PermissionItem) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(spacing: 12) {
+                    AppIcon(bundleID: item.bundleID)
+                        .scaleEffect(1.6)
+                        .frame(width: 44, height: 44)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.appName)
+                            .font(.title3.weight(.semibold))
+                        Text(item.bundleID)
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                            .font(.caption)
+                    }
+                }
+                Divider()
+                row("Service", icon: item.service.symbol, value: item.service.displayName)
+                row("Tier", icon: nil, value: item.tier.label)
+                row("State", icon: nil, value: item.allowed ? "Allowed" : "Denied")
+                if let last = item.lastModified {
+                    row("Last touched", icon: nil, value: last.formatted(.dateTime.month(.abbreviated).day().year().hour().minute()))
+                }
+                row("Sensitive service", icon: nil, value: item.service.isSensitive ? "Yes — wide read/write power" : "No")
+                Divider()
+                if let url = item.service.settingsURL {
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Label("Open \(item.service.displayName) in Settings", systemImage: "arrow.up.right.square")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .controlSize(.large)
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private func row(_ title: String, icon: String?, value: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            if let icon {
+                Image(systemName: icon)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 16)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.caption).foregroundStyle(.secondary)
+                Text(value).font(.body).textSelection(.enabled)
+            }
+            Spacer()
+        }
+    }
 }
