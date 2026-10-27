@@ -374,6 +374,7 @@ private struct BootRow: View {
                 Text(item.programName)
                     .fontWeight(.medium)
                     .lineLimit(1)
+                    .layoutPriority(1)
                 Text(item.label)
                     .font(.callout)
                     .foregroundStyle(.secondary)
