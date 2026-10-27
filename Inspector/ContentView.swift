@@ -181,7 +181,8 @@ private func reveal(_ item: CleanupItem) {
 
 struct ContentView: View {
     @StateObject private var vm = StorageViewModel()
-    @State private var showDetails = true
+    // Closed until the user asks for it: clicking a row, the toolbar toggle, or ⌥⌘I.
+    @State private var showDetails = false
     @FocusState private var searchFocused: Bool
     @State private var confirmTrash = false
     @State private var quickLookURL: URL?
@@ -203,6 +204,7 @@ struct ContentView: View {
                     onClose: { setDetails(visible: false) }
                 )
                 .frame(width: 320)
+                .frame(maxHeight: .infinity, alignment: .top)
                 .background(Color(nsColor: .windowBackgroundColor))
                 .transition(.move(edge: .trailing))
             }
