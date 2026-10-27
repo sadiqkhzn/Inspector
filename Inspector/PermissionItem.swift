@@ -1,0 +1,86 @@
+import Foundation
+
+/// The subset of macOS privacy "services" (as TCC.db calls them) that Inspector
+/// surfaces in the Permissions view. Each service corresponds to a Privacy &
+/// Security section in System Settings.
+enum PermissionService: String, CaseIterable, Hashable {
+    case camera           = "kTCCServiceCamera"
+    case microphone       = "kTCCServiceMicrophone"
+    case screenRecording  = "kTCCServiceScreenCapture"
+    case accessibility    = "kTCCServiceAccessibility"
+    case location         = "kTCCServiceLocation"
+    case fullDiskAccess   = "kTCCServiceSystemPolicyAllFiles"
+    case automation       = "kTCCServiceAppleEvents"
+    case inputMonitoring  = "kTCCServiceListenEvent"
+    case contacts         = "kTCCServiceAddressBook"
+    case calendar         = "kTCCServiceCalendar"
+    case photos           = "kTCCServicePhotos"
+    case reminders        = "kTCCServiceReminders"
+
+    var displayName: String {
+        switch self {
+        case .camera:           return "Camera"
+        case .microphone:       return "Microphone"
+        case .screenRecording:  return "Screen Recording"
+        case .accessibility:    return "Accessibility"
+        case .location:         return "Location Services"
+        case .fullDiskAccess:   return "Full Disk Access"
+        case .automation:       return "Automation (Apple Events)"
+        case .inputMonitoring:  return "Input Monitoring"
+        case .contacts:         return "Contacts"
+        case .calendar:         return "Calendars"
+        case .photos:           return "Photos"
+        case .reminders:        return "Reminders"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .camera:           return "camera"
+        case .microphone:       return "mic"
+        case .screenRecording:  return "rectangle.on.rectangle"
+        case .accessibility:    return "figure.wave"
+        case .location:         return "location"
+        case .fullDiskAccess:   return "externaldrive"
+        case .automation:       return "scribble.variable"
+        case .inputMonitoring:  return "keyboard"
+        case .contacts:         return "person.crop.circle"
+        case .calendar:         return "calendar"
+        case .photos:           return "photo"
+        case .reminders:        return "checklist"
+        }
+    }
+
+    /// Services that give an app wide read/write power over user data or input.
+    /// Shown with a stronger badge in the UI.
+    var isSensitive: Bool {
+        switch self {
+        case .fullDiskAccess, .accessibility, .inputMonitoring,
+             .screenRecording, .automation:
+            return true
+        default:
+            return false
+        }
+    }
+
+    static func from(tccService: String) -> PermissionService? {
+        PermissionService.allCases.first { $0.rawValue == tccService }
+    }
+}
+
+/// One row in the Permissions view — "App X has (or doesn't have) permission
+/// Y, last touched at time T."
+struct PermissionItem: Identifiable, Hashable {
+    let bundleID: String
+    let service: PermissionService
+    let allowed: Bool
+    let lastModified: Date?
+    /// Human-friendly name (resolved via NSWorkspace from the bundle ID when
+    /// possible; falls back to the bundle ID itself).
+    let appName: String
+
+    var id: String { "\(bundleID)|\(service.rawValue)" }
+
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    static func == (a: PermissionItem, b: PermissionItem) -> Bool { a.id == b.id }
+}
