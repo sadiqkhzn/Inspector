@@ -73,20 +73,34 @@ struct PermissionsView: View {
         )
     }
 
+    @FocusState private var isListFocused: Bool
+
     private var content: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
-                summary
-                ForEach(vm.sections) { section in
-                    SectionView(
-                        section: section,
-                        focusedID: vm.focusedID,
-                        onFocus: { vm.focusedID = $0 }
-                    )
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    summary
+                    ForEach(vm.sections) { section in
+                        SectionView(
+                            section: section,
+                            focusedID: vm.focusedID,
+                            onFocus: { vm.focusedID = $0 }
+                        )
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .focusable()
+            .focused($isListFocused)
+            .focusEffectDisabled()
+            .onKeyPress(.upArrow)   { vm.moveFocus(by: -1); return .handled }
+            .onKeyPress(.downArrow) { vm.moveFocus(by: 1); return .handled }
+            .onChange(of: vm.focusedID) { _, id in
+                guard let id else { return }
+                withAnimation(.smooth(duration: 0.2)) { proxy.scrollTo(id, anchor: .center) }
+            }
+            .onAppear { isListFocused = true }
         }
     }
 
@@ -266,6 +280,19 @@ final class PermissionsViewModel: ObservableObject {
 
     var focusedItem: PermissionItem? {
         items.first { $0.id == focusedID }
+    }
+
+    /// Mirrors BootViewModel.moveFocus(by:) — up/down arrow keys walk the
+    /// visible rows in order (across sections). Falls through to the first
+    /// visible row when the current focus is hidden by the search field.
+    func moveFocus(by offset: Int) {
+        let ids = sections.flatMap(\.items).map(\.id)
+        guard !ids.isEmpty else { return }
+        guard let current = focusedID, let index = ids.firstIndex(of: current) else {
+            focusedID = ids.first
+            return
+        }
+        focusedID = ids[min(max(index + offset, 0), ids.count - 1)]
     }
 
     private var filtered: [PermissionItem] {
