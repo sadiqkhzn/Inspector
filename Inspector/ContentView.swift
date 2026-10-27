@@ -329,10 +329,10 @@ struct ContentView: View {
                 onClose: { setDetails(visible: false) }
             )
         case .permissions:
-            VStack(spacing: 0) {
-                DetailsHeader(onClose: { setDetails(visible: false) })
-                ContentUnavailableView("Nothing to show yet", systemImage: "hand.raised")
-            }
+            PermissionsDetailsPane(
+                item: permissions.focusedItem,
+                onClose: { setDetails(visible: false) }
+            )
         }
     }
 
