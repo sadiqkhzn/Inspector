@@ -110,21 +110,44 @@ private struct SectionView: View {
 
     private func row(_ item: PermissionItem) -> some View {
         HStack(spacing: 10) {
-            Circle()
-                .fill(item.allowed ? Color.green : Color.secondary)
-                .frame(width: 8, height: 8)
             AppIcon(bundleID: item.bundleID)
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.appName).font(.body)
                 Text(item.bundleID).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
+            TierChip(tier: item.tier)
             if let last = item.lastModified {
                 Text(last, format: .relative(presentation: .named))
                     .font(.caption).foregroundStyle(.secondary)
+                    .frame(minWidth: 88, alignment: .trailing)
             }
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
+    }
+}
+
+/// Visual badge mirroring Storage's Safe / Review / Keep system but tuned for
+/// the Permissions domain.
+private struct TierChip: View {
+    let tier: PermissionTier
+
+    private var color: Color {
+        switch tier {
+        case .denied:  return .secondary
+        case .granted: return .green
+        case .stale:   return .yellow
+        case .risky:   return .orange
+        }
+    }
+
+    var body: some View {
+        Text(tier.label)
+            .font(.caption2.weight(.semibold))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Capsule().fill(color.opacity(0.18)))
+            .foregroundStyle(color)
     }
 }
 

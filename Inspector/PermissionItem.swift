@@ -68,6 +68,30 @@ enum PermissionService: String, CaseIterable, Hashable {
     }
 }
 
+/// Mirrors the Storage view's Safe / Review / Keep system — a single-word
+/// chip the UI puts next to each row so users can scan at a glance.
+enum PermissionTier: String {
+    /// The user denied the request. No action needed.
+    case denied
+    /// Granted and touched recently. Standard case for apps you actively use.
+    case granted
+    /// Granted but not touched in >= 30 days. Candidate for revocation.
+    case stale
+    /// Granted *and* the service is one of the sensitive ones (Full Disk
+    /// Access, Accessibility, Input Monitoring, Screen Recording, Automation).
+    /// Shown louder.
+    case risky
+
+    var label: String {
+        switch self {
+        case .denied:  return "Denied"
+        case .granted: return "Granted"
+        case .stale:   return "Stale"
+        case .risky:   return "Risky"
+        }
+    }
+}
+
 /// One row in the Permissions view — "App X has (or doesn't have) permission
 /// Y, last touched at time T."
 struct PermissionItem: Identifiable, Hashable {
@@ -80,6 +104,18 @@ struct PermissionItem: Identifiable, Hashable {
     let appName: String
 
     var id: String { "\(bundleID)|\(service.rawValue)" }
+
+    /// Classification used by the UI chip. Not persisted — derived on the fly
+    /// so the "Stale" cut-off can shift later without a scanner change.
+    var tier: PermissionTier {
+        guard allowed else { return .denied }
+        if service.isSensitive { return .risky }
+        if let last = lastModified,
+           Date().timeIntervalSince(last) > 30 * 24 * 60 * 60 {
+            return .stale
+        }
+        return .granted
+    }
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
     static func == (a: PermissionItem, b: PermissionItem) -> Bool { a.id == b.id }
