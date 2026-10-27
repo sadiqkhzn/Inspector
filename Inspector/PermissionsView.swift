@@ -69,13 +69,42 @@ struct PermissionsView: View {
 
     private var content: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 24) {
+            LazyVStack(alignment: .leading, spacing: 20) {
+                summary
                 ForEach(vm.sections) { section in
                     SectionView(section: section)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
+        }
+    }
+
+    private var summary: some View {
+        let risky   = vm.items.filter { $0.tier == .risky }.count
+        let stale   = vm.items.filter { $0.tier == .stale }.count
+        let granted = vm.items.filter { $0.tier == .granted }.count
+        let denied  = vm.items.filter { $0.tier == .denied }.count
+        return HStack(spacing: 20) {
+            summaryCell(label: "Risky", count: risky, color: .orange)
+            summaryCell(label: "Stale", count: stale, color: .yellow)
+            summaryCell(label: "Granted", count: granted, color: .green)
+            summaryCell(label: "Denied", count: denied, color: .secondary)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.04)))
+    }
+
+    private func summaryCell(label: String, count: Int, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("\(count)")
+                .font(.system(size: 28, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }
