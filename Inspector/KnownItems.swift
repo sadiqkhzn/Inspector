@@ -102,11 +102,39 @@ enum KnownItems {
             "Rebuilds on next launch."
         ),
         KnownItemSpec(
-            "Steam data",
-            "Library/Application Support/Steam",
-            .keep, .appData,
-            "Steam client state. On macOS this folder also contains the default install location for your Steam library (SteamApps/common), so it can be tens or hundreds of GB of installed games.",
-            "You lose every installed Steam game and will need to re-download them (potentially hundreds of GB). Only clear if you've uninstalled Steam entirely."
+            "Steam app cache",
+            "Library/Application Support/Steam/appcache",
+            .safe, .cache,
+            "Steam client's HTTP response and asset cache (not game files).",
+            "Steam rebuilds the cache on next launch. Installed games are untouched."
+        ),
+        KnownItemSpec(
+            "Steam depot cache",
+            "Library/Application Support/Steam/depotcache",
+            .safe, .cache,
+            "Cached depot manifests used during game installs and updates.",
+            "Next install or update rebuilds the manifests. Installed games are untouched."
+        ),
+        KnownItemSpec(
+            "Steam logs",
+            "Library/Application Support/Steam/logs",
+            .safe, .cache,
+            "Steam client's diagnostic logs.",
+            "Nothing. New logs are written as needed."
+        ),
+        KnownItemSpec(
+            "Steam shader cache",
+            "Library/Application Support/Steam/steamapps/shadercache",
+            .safe, .cache,
+            "Pre-compiled shaders Steam cached for installed games.",
+            "First launch of each affected game recompiles shaders (one-off slower start). Game files are untouched."
+        ),
+        KnownItemSpec(
+            "Steam partial downloads",
+            "Library/Application Support/Steam/steamapps/downloading",
+            .safe, .cache,
+            "Partially downloaded game files from interrupted installs or updates.",
+            "Any in-progress Steam downloads restart from scratch. Completed installs are untouched."
         ),
         KnownItemSpec(
             "VS Code cached data",
@@ -411,9 +439,9 @@ KnownItemSpec(
         ),
         KnownItemSpec(
             "Dropbox cache",
-            "Library/Application Support/Dropbox/instance1/cache",
+            "Dropbox/.dropbox.cache",
             .safe, .cache,
-            "Dropbox client's local sync cache.",
+            "Dropbox client's local sync cache — kept inside your Dropbox folder, not in ~/Library.",
             "Dropbox rebuilds the cache as it continues syncing. Files on disk and in the cloud are untouched."
         ),
         KnownItemSpec(
@@ -914,10 +942,10 @@ KnownItemSpec(
             "OneDrive rebuilds the cache. Synced files are untouched."
         ),
         KnownItemSpec(
-            "Google Drive cache",
+            "Google Drive logs",
             "Library/Application Support/Google/DriveFS/Logs",
             .safe, .cache,
-            "Google Drive File Stream log directory.",
+            "Google Drive File Stream's diagnostic log directory.",
             "New logs are written as needed."
         ),
         KnownItemSpec(
@@ -1024,6 +1052,62 @@ KnownItemSpec(
             .review, .cache,
             "Chrome's registered service worker storage for PWAs.",
             "PWAs may re-download assets on next open; some offline-only data lost."
+        ),
+        KnownItemSpec(
+            "iPhone / iPad backups",
+            "Library/Application Support/MobileSync/Backup",
+            .keep, .appData,
+            "Local Finder / iTunes device backups for connected iPhones and iPads.",
+            "You lose every local device backup. If a device is lost or wiped, there is no recovery from this Mac. Keep unless you have an iCloud backup you trust."
+        ),
+        KnownItemSpec(
+            "CoreSimulator logs",
+            "Library/Logs/CoreSimulator",
+            .safe, .devTool,
+            "Diagnostic logs from the iOS Simulator runtime.",
+            "Nothing. New logs are written on next simulator run."
+        ),
+        KnownItemSpec(
+            "JetBrains logs",
+            "Library/Logs/JetBrains",
+            .safe, .devTool,
+            "Per-product diagnostic logs from JetBrains IDEs.",
+            "Nothing. New logs are written as needed."
+        ),
+        KnownItemSpec(
+            "Mail diagnostic logs",
+            "Library/Containers/com.apple.mail/Data/Library/Logs/Mail",
+            .safe, .cache,
+            "Apple Mail's diagnostic logs inside its container.",
+            "Nothing. Only useful for debugging Mail problems."
+        ),
+        KnownItemSpec(
+            "Conan 2 package cache",
+            ".conan2/p",
+            .safe, .devTool,
+            "Conan 2 package manager's cache of downloaded binaries and recipes.",
+            "conan install re-downloads packages on next use. Nothing else changes."
+        ),
+        KnownItemSpec(
+            "NuGet packages cache",
+            ".nuget/packages",
+            .safe, .devTool,
+            "NuGet's cache of downloaded .NET packages.",
+            "dotnet restore re-downloads packages on next build."
+        ),
+        KnownItemSpec(
+            "Adobe media cache",
+            "Library/Application Support/Adobe/Common/Media Cache Files",
+            .safe, .cache,
+            "Shared media cache files generated by Premiere Pro, After Effects, Audition, and other Adobe apps.",
+            "Adobe apps regenerate the cache as you open projects. Project files themselves are untouched."
+        ),
+        KnownItemSpec(
+            "Adobe peak files",
+            "Library/Application Support/Adobe/Common/Peak Files",
+            .safe, .cache,
+            "Audio peak files Adobe apps generate for waveform rendering.",
+            "Adobe apps regenerate peak files when audio clips are reopened."
         ),
     ]
 }
