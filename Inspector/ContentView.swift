@@ -181,27 +181,35 @@ private func reveal(_ item: CleanupItem) {
 
 struct ContentView: View {
     @StateObject private var vm = StorageViewModel()
-    @State private var showInspector = true
+    @State private var showDetails = true
     @State private var confirmTrash = false
     @State private var quickLookURL: URL?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        NavigationStack {
+        // A plain column rather than `.inspector`, which claims the trailing end of the
+        // toolbar; this keeps one full-width toolbar above both the list and the details.
+        HStack(spacing: 0) {
             content
-                .navigationTitle("Inspector")
-                .toolbar { toolbar }
-                .searchable(text: $vm.searchText, placement: .toolbar, prompt: "Filter by name, path or app")
-                .inspector(isPresented: $showInspector) {
-                    DetailsPane(
-                        item: vm.focusedItem,
-                        foundBytes: vm.foundBytes,
-                        onToggle: { if let id = vm.focusedID { withAnimation(motion(reduceMotion)) { vm.toggle(id) } } },
-                        onReveal: { if let item = vm.focusedItem { reveal(item) } },
-                        onQuickLook: { quickLookURL = vm.focusedItem?.url }
-                    )
-                    .inspectorColumnWidth(min: 280, ideal: 320, max: 420)
-                }
+            if showDetails {
+                Divider()
+                DetailsPane(
+                    item: vm.focusedItem,
+                    foundBytes: vm.foundBytes,
+                    onToggle: { if let id = vm.focusedID { withAnimation(motion(reduceMotion)) { vm.toggle(id) } } },
+                    onReveal: { if let item = vm.focusedItem { reveal(item) } },
+                    onQuickLook: { quickLookURL = vm.focusedItem?.url },
+                    onClose: { setDetails(visible: false) }
+                )
+                .frame(width: 320)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .transition(.move(edge: .trailing))
+            }
+        }
+        .navigationTitle("Inspector")
+        .toolbar { toolbar }
+        .background {
+            ShortcutButton(key: "i", modifiers: [.command, .option]) { setDetails(visible: !showDetails) }
         }
         .quickLookPreview($quickLookURL)
         .confirmationDialog(
@@ -227,29 +235,32 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            ToolbarSearchField(text: $vm.searchText)
+        }
         ToolbarItem(placement: .primaryAction) {
             Button {
                 Task { await vm.refresh() }
             } label: {
-                if vm.isScanning {
-                    ProgressView().controlSize(.small)
-                } else {
-                    Label("Rescan", systemImage: "arrow.clockwise")
+                HStack(spacing: 6) {
+                    if vm.isScanning {
+                        ProgressView().controlSize(.small)
+                    }
+                    Text("Rescan")
+                    Text("⌘R")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                .padding(.horizontal, 4)
             }
             .help("Rescan (⌘R)")
             .keyboardShortcut("r")
             .disabled(vm.isScanning)
         }
-        ToolbarItem(placement: .primaryAction) {
-            Button {
-                withAnimation(motion(reduceMotion)) { showInspector.toggle() }
-            } label: {
-                Label("Details", systemImage: "sidebar.right")
-            }
-            .help("Show or hide details (⌥⌘I)")
-            .keyboardShortcut("i", modifiers: [.command, .option])
-        }
+    }
+
+    private func setDetails(visible: Bool) {
+        withAnimation(motion(reduceMotion)) { showDetails = visible }
     }
 
     @ViewBuilder
@@ -265,7 +276,11 @@ struct ContentView: View {
                 if vm.visibleItems.isEmpty {
                     noMatches
                 } else {
-                    ItemList(vm: vm, onQuickLook: { quickLookURL = $0.url })
+                    ItemList(
+                        vm: vm,
+                        onQuickLook: { quickLookURL = $0.url },
+                        onOpenDetails: { if !showDetails { setDetails(visible: true) } }
+                    )
                 }
             }
         }
@@ -290,6 +305,17 @@ struct ContentView: View {
             .buttonStyle(.borderless)
             .keyboardShortcut("a", modifiers: [.command, .option])
             .disabled(!vm.visibleItems.contains { $0.safety == .safe && !$0.selected })
+            if !showDetails {
+                Button {
+                    setDetails(visible: true)
+                } label: {
+                    Image(systemName: "sidebar.right")
+                }
+                .buttonStyle(.borderless)
+                .help("Show details (⌥⌘I)")
+                .accessibilityLabel("Show details")
+                .transition(.opacity)
+            }
         }
         .padding(.leading, 26)
         .padding(.trailing, 20)
@@ -551,6 +577,7 @@ private struct TierPicker: View {
 private struct ItemList: View {
     @ObservedObject var vm: StorageViewModel
     let onQuickLook: (CleanupItem) -> Void
+    let onOpenDetails: () -> Void
     @FocusState private var isFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -566,6 +593,7 @@ private struct ItemList: View {
                             onFocus: {
                                 vm.focusedID = item.id
                                 isFocused = true
+                                onOpenDetails()
                             },
                             onQuickLook: { onQuickLook(item) }
                         )
@@ -761,9 +789,30 @@ private struct DetailsPane: View {
     let onToggle: () -> Void
     let onReveal: () -> Void
     let onQuickLook: () -> Void
+    let onClose: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Details")
+                    .font(.headline)
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "sidebar.right")
+                }
+                .buttonStyle(.borderless)
+                .help("Hide details (⌥⌘I)")
+                .accessibilityLabel("Hide details")
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 40)
+            Divider()
+            itemDetails
+        }
+    }
+
+    private var itemDetails: some View {
         Group {
             if let item {
                 VStack(spacing: 0) {
@@ -1039,5 +1088,94 @@ private struct EmptyState: View {
         } actions: {
             Button("Scan Again", action: rescan)
         }
+    }
+}
+
+// MARK: - Toolbar
+
+private struct ToolbarSearchField: View {
+    @Binding var text: String
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Filter by name, path or app", text: $text)
+                .textFieldStyle(.plain)
+                .focused($isFocused)
+                .onExitCommand {
+                    text = ""
+                    isFocused = false
+                }
+            if text.isEmpty {
+                Text("⌘F")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(Color.primary.opacity(0.07)))
+                    .accessibilityHidden(true)
+            } else {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear")
+                .accessibilityLabel("Clear search")
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(width: 420, height: 28)
+        .modifier(SearchFieldChrome())
+        .background {
+            ShortcutButton(key: "f", modifiers: .command) { isFocused = true }
+        }
+    }
+}
+
+// On macOS 26 the toolbar already draws a glass capsule around each item.
+private struct SearchFieldChrome: ViewModifier {
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) {
+            content
+        } else {
+            field(content)
+        }
+        #else
+        field(content)
+        #endif
+    }
+
+    private func field(_ content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
+            )
+    }
+}
+
+// An invisible button that only exists to carry a keyboard shortcut.
+private struct ShortcutButton: View {
+    let key: KeyEquivalent
+    let modifiers: EventModifiers
+    let action: () -> Void
+
+    var body: some View {
+        Button("", action: action)
+            .keyboardShortcut(key, modifiers: modifiers)
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }

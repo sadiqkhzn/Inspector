@@ -9,5 +9,6 @@ struct InspectorApp: App {
         }
         .defaultSize(width: 1080, height: 760)
         .windowResizability(.contentMinSize)
+        .windowToolbarStyle(.unified(showsTitle: true))
     }
 }
