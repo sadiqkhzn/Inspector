@@ -19,17 +19,44 @@ Built because the "95GB of System Data" screen in macOS Settings should not be t
 
 **[Inspector 0.3.1 for macOS (.dmg, 2.5 MB)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.1.dmg)**
 
-Open the `.dmg`. A Finder window opens with `Inspector.app` on the left and an `Applications` shortcut on the right — drag the app onto the shortcut to install. Then eject the disk image, open `Inspector` from your **Applications** folder (not from the mounted disk).
+### Install
 
-The build is ad-hoc signed (no paid Apple Developer certificate yet), so the first launch needs **right-click → Open** instead of a double-click — macOS remembers it after that.
+1. Open the `.dmg`. A Finder window opens with `Inspector.app` on the left and an `Applications` shortcut on the right.
+2. Drag `Inspector.app` onto the `Applications` shortcut.
+3. Eject the mounted disk from Finder's sidebar.
+4. Open **Applications** and double-click **Inspector**.
 
-SHA-256 of the `.dmg`:
+### First launch (the "Apple could not verify" dialog)
+
+Inspector is signed ad-hoc because there isn't a paid Apple Developer certificate on it yet, so macOS 15 Sequoia and newer block the first launch. This is a one-time step — once you've allowed it, every subsequent double-click opens Inspector normally.
+
+1. The first time you open Inspector you'll see **"Inspector" Not Opened** — *"Apple could not verify "Inspector" is free of malware that may harm your Mac or compromise your privacy."* Click **Done**. (Not *Move to Bin*.)
+2. Open **System Settings → Privacy & Security**.
+3. Scroll all the way to the bottom to the **Security** section. You'll see a line that reads *"Inspector" was blocked to protect your Mac*.
+4. Click **Open Anyway** next to it.
+5. A second dialog pops up — *"Open 'Inspector'?"* with the same warning text. Click **Open Anyway** again.
+6. macOS asks for your password or Touch ID. Confirm.
+7. Inspector opens.
+
+macOS remembers this choice. From now on, double-clicking Inspector in Applications opens it directly, no dialogs.
+
+If you'd rather skip the System Settings walk, one Terminal command does the same thing:
+
+```
+xattr -dr com.apple.quarantine /Applications/Inspector.app
+```
+
+Then just double-click Inspector in Applications.
+
+### Checksum
+
+SHA-256 of `Inspector-0.3.1.dmg`:
 
 ```
 5c90732e24b9000d975e093e4a1c6ff27670ce1612ac186f1b4d2192d2d7a1f5
 ```
 
-All releases are also available at [github.com/sadiqkhzn/Inspector/releases](https://github.com/sadiqkhzn/Inspector/releases).
+All releases: [github.com/sadiqkhzn/Inspector/releases](https://github.com/sadiqkhzn/Inspector/releases).
 
 ## What's in v0.3.1
 
