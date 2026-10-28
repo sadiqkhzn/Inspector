@@ -6,7 +6,7 @@
 
 **See what macOS hides.**
 
-[![Download](https://img.shields.io/github/v/release/sadiqkhzn/Inspector?label=download&style=for-the-badge)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)
+[![download](https://img.shields.io/github/v/release/sadiqkhzn/Inspector?label=download&color=blue)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)
 ![platform](https://img.shields.io/badge/platform-macOS%2014%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![tests](https://img.shields.io/badge/tests-47%20passing-brightgreen)
@@ -17,7 +17,7 @@ Built because the "95GB of System Data" screen in macOS Settings should not be t
 
 ## Download
 
-**[⬇ Inspector 0.3.0 for macOS (.dmg, 2.5 MB)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)**
+**[Inspector 0.3.0 for macOS (.dmg, 2.5 MB)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)**
 
 Open the `.dmg`, drag `Inspector.app` to Applications. The build is ad-hoc signed (no paid Apple Developer certificate yet), so the first launch needs **right-click → Open** instead of a double-click — macOS remembers it after that.
 
