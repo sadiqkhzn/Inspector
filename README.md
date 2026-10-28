@@ -19,12 +19,14 @@ Built because the "95GB of System Data" screen in macOS Settings should not be t
 
 **[Inspector 0.3.0 for macOS (.dmg, 2.5 MB)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)**
 
-Open the `.dmg`, drag `Inspector.app` to Applications. The build is ad-hoc signed (no paid Apple Developer certificate yet), so the first launch needs **right-click → Open** instead of a double-click — macOS remembers it after that.
+Open the `.dmg`. A Finder window opens with `Inspector.app` on the left and an `Applications` shortcut on the right — drag the app onto the shortcut to install. Then eject the disk image, open `Inspector` from your **Applications** folder (not from the mounted disk).
+
+The build is ad-hoc signed (no paid Apple Developer certificate yet), so the first launch needs **right-click → Open** instead of a double-click — macOS remembers it after that.
 
 SHA-256 of the `.dmg`:
 
 ```
-d01f45af2791de637ebcbf19795088efaeb592ae59dfd652e1610c5e73b07f55
+19ce7e840183c99629731a322f7f7a1a5c34f67af9da69b2b867a1ae35f83f0c
 ```
 
 All releases are also available at [github.com/sadiqkhzn/Inspector/releases](https://github.com/sadiqkhzn/Inspector/releases).
