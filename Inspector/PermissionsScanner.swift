@@ -63,7 +63,9 @@ enum PermissionsScanner {
         )
     }
 
-    private static func readAccessRows(at url: URL) -> [PermissionItem]? {
+    /// Exposed as internal so test code can hand `readAccessRows` a crafted
+    /// SQLite file instead of the real `/Library/Application Support/com.apple.TCC/TCC.db`.
+    static func readAccessRows(at url: URL) -> [PermissionItem]? {
         var db: OpaquePointer?
         guard sqlite3_open_v2(url.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK, let db else {
             if db != nil { sqlite3_close(db) }

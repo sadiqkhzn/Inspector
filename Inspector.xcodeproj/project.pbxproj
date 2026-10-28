@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		042FA9AF184528F6DE7D991F /* PermissionsScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75DFE5163DE1E752E1C78D91 /* PermissionsScannerTests.swift */; };
 		0BAD3E6BE2890414138924A8 /* KnownItemsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35792DC4AE1940A651D5A99 /* KnownItemsTests.swift */; };
 		0C020B5C90F88C0AAEDAE82A /* KnownItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDE58C2302D4D68E880A1582 /* KnownItems.swift */; };
 		0D130AB325962863C029173E /* InspectorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77F9BF11B9BACC09F814094 /* InspectorApp.swift */; };
@@ -45,6 +46,7 @@
 		28E2ABDC3BA1E8901B3F0CBC /* Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Inspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B68CF5ABC76C7F85D57914E /* InspectorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InspectorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5004E652159EEF65AAC81E79 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		75DFE5163DE1E752E1C78D91 /* PermissionsScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsScannerTests.swift; sourceTree = "<group>"; };
 		7B44EA4799437567F01A9436 /* BootScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootScannerTests.swift; sourceTree = "<group>"; };
 		8CF888034750A2AD17467415 /* BootItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootItem.swift; sourceTree = "<group>"; };
 		8E1260D4791F9F772B3D92E8 /* PermissionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionItem.swift; sourceTree = "<group>"; };
@@ -79,6 +81,7 @@
 			children = (
 				7B44EA4799437567F01A9436 /* BootScannerTests.swift */,
 				A35792DC4AE1940A651D5A99 /* KnownItemsTests.swift */,
+				75DFE5163DE1E752E1C78D91 /* PermissionsScannerTests.swift */,
 				06404892B30BD38383346432 /* PermissionsTests.swift */,
 				EFFF1EEE8067CB54142699D1 /* ScannerTests.swift */,
 			);
@@ -209,6 +212,7 @@
 			files = (
 				EEB05AC27425A14D48C3A640 /* BootScannerTests.swift in Sources */,
 				0BAD3E6BE2890414138924A8 /* KnownItemsTests.swift in Sources */,
+				042FA9AF184528F6DE7D991F /* PermissionsScannerTests.swift in Sources */,
 				52D2295E16C5319391C52C13 /* PermissionsTests.swift in Sources */,
 				EDB6005F5E690CC1844DF360 /* ScannerTests.swift in Sources */,
 			);
