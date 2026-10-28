@@ -6,7 +6,7 @@
 
 **See what macOS hides.**
 
-[![download](https://img.shields.io/github/v/release/sadiqkhzn/Inspector?label=download&color=blue)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)
+[![download](https://img.shields.io/github/v/release/sadiqkhzn/Inspector?label=download&color=blue)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.1.dmg)
 ![platform](https://img.shields.io/badge/platform-macOS%2014%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![tests](https://img.shields.io/badge/tests-47%20passing-brightgreen)
@@ -17,7 +17,7 @@ Built because the "95GB of System Data" screen in macOS Settings should not be t
 
 ## Download
 
-**[Inspector 0.3.0 for macOS (.dmg, 2.5 MB)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)**
+**[Inspector 0.3.1 for macOS (.dmg, 2.5 MB)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.1.dmg)**
 
 Open the `.dmg`. A Finder window opens with `Inspector.app` on the left and an `Applications` shortcut on the right — drag the app onto the shortcut to install. Then eject the disk image, open `Inspector` from your **Applications** folder (not from the mounted disk).
 
@@ -26,12 +26,12 @@ The build is ad-hoc signed (no paid Apple Developer certificate yet), so the fir
 SHA-256 of the `.dmg`:
 
 ```
-19ce7e840183c99629731a322f7f7a1a5c34f67af9da69b2b867a1ae35f83f0c
+5c90732e24b9000d975e093e4a1c6ff27670ce1612ac186f1b4d2192d2d7a1f5
 ```
 
 All releases are also available at [github.com/sadiqkhzn/Inspector/releases](https://github.com/sadiqkhzn/Inspector/releases).
 
-## What's in v0.3.0
+## What's in v0.3.1
 
 - **Storage** — ~185 catalog entries across caches, logs, dev-tool artefacts and installer leftovers. Each entry carries a safety tier (safe / review / keep), a plain-English explanation, and a provenance tag — `Verified` means cross-referenced against a primary source, `First-draft` means it hasn't been. Deletes go to the Trash and can be restored.
 - **Boot** — scans `~/Library/LaunchAgents`, `/Library/LaunchAgents` and `/Library/LaunchDaemons`, grouped by developer. Each row shows the signer name taken from the executable's code signature and a plain schedule (`Every hour`, `Daily at 3:00`, `Mondays at 9:30`). Enabled items whose executable is unsigned get an `Unsigned` chip.

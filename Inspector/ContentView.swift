@@ -1320,23 +1320,45 @@ private struct ModeTabs: View {
         } label: {
             Label(mode.title, systemImage: mode.symbol)
                 .labelStyle(.titleAndIcon)
+                .symbolVariant(isSelected ? .fill : .none)
                 .font(.callout.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? Color.primary : Color.secondary)
                 .padding(.horizontal, 11)
                 .frame(height: 24)
-                .background {
-                    if isSelected {
-                        Capsule()
-                            .fill(Color(nsColor: .controlBackgroundColor))
-                            .shadow(color: .black.opacity(0.12), radius: 1, y: 0.5)
-                            .matchedGeometryEffect(id: "selection", in: namespace)
-                    }
-                }
+                .background { selectionBackground(isSelected: isSelected) }
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .help("\(mode.title)  ⌘\(String(mode.shortcut.character))")
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+
+    /// On macOS 26 the toolbar wraps each item in its own glass capsule, so
+    /// drawing a second capsule inside it leaves two curves that don't line up
+    /// at the ends — the inner one looks like it's bleeding out of the outer.
+    /// On macOS 26 we lean on the icon's filled variant + accent tint for the
+    /// selection cue instead; on earlier systems we keep the pill since there's
+    /// no outer capsule to compete with.
+    @ViewBuilder
+    private func selectionBackground(isSelected: Bool) -> some View {
+        if isSelected {
+            #if compiler(>=6.2)
+            if #available(macOS 26.0, *) {
+                EmptyView()
+            } else {
+                selectionPill
+            }
+            #else
+            selectionPill
+            #endif
+        }
+    }
+
+    private var selectionPill: some View {
+        Capsule()
+            .fill(Color(nsColor: .controlBackgroundColor))
+            .shadow(color: .black.opacity(0.12), radius: 1, y: 0.5)
+            .matchedGeometryEffect(id: "selection", in: namespace)
     }
 }
 
