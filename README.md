@@ -6,71 +6,73 @@
 
 **See what macOS hides.**
 
+[![Download](https://img.shields.io/github/v/release/sadiqkhzn/Inspector?label=download&style=for-the-badge)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)
 ![platform](https://img.shields.io/badge/platform-macOS%2014%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
-![status](https://img.shields.io/badge/status-early-orange)
+![tests](https://img.shields.io/badge/tests-47%20passing-brightgreen)
 
 A native Mac app that shows you what's eating your disk, slowing your boot, and watching you — and lets you decide what to do. No scary scanner, no subscription, no cloud, no AI.
 
 Built because the "95GB of System Data" screen in macOS Settings should not be the end of the conversation.
 
-## Status
+## Download
 
-Early. v0.1 ships the **Storage** view: known cache locations, installer leftovers, and dev tool cruft with a plain-English explanation and a safety tier for each.
+**[⬇ Inspector 0.3.0 for macOS (.dmg, 2.5 MB)](https://github.com/sadiqkhzn/Inspector/releases/latest/download/Inspector-0.3.0.dmg)**
 
-Planned:
-- v0.2 — **Boot** view: every login item, LaunchAgent, and LaunchDaemon in one list
-- v0.3 — **Permissions** view: which apps have mic / camera / screen access and when they used it
+Open the `.dmg`, drag `Inspector.app` to Applications. The build is ad-hoc signed (no paid Apple Developer certificate yet), so the first launch needs **right-click → Open** instead of a double-click — macOS remembers it after that.
+
+SHA-256 of the `.dmg`:
+
+```
+d01f45af2791de637ebcbf19795088efaeb592ae59dfd652e1610c5e73b07f55
+```
+
+All releases are also available at [github.com/sadiqkhzn/Inspector/releases](https://github.com/sadiqkhzn/Inspector/releases).
+
+## What's in v0.3.0
+
+- **Storage** — ~185 catalog entries across caches, logs, dev-tool artefacts and installer leftovers. Each entry carries a safety tier (safe / review / keep), a plain-English explanation, and a provenance tag — `Verified` means cross-referenced against a primary source, `First-draft` means it hasn't been. Deletes go to the Trash and can be restored.
+- **Boot** — scans `~/Library/LaunchAgents`, `/Library/LaunchAgents` and `/Library/LaunchDaemons`, grouped by developer. Each row shows the signer name taken from the executable's code signature and a plain schedule (`Every hour`, `Daily at 3:00`, `Mondays at 9:30`). Enabled items whose executable is unsigned get an `Unsigned` chip.
+- **Permissions** — reads both TCC databases (requires Full Disk Access). One row per app with its real icon and a strip of System Settings glyphs for the permissions it holds. `By App` / `By Permission` toggle, `All / Sensitive / Allowed / Denied` filter, per-service deep-link into the right System Settings pane.
+- Icon tabs in the toolbar, `⌘F` focuses search, `⌘R` rescans the active tab.
+- 47 unit tests covering the catalog, env-var resolver, Boot plist parsing, Permissions tier logic, and the TCC SQLite parser.
 
 ## Principles
 
 - **Clarity over cleanup.** Show what's there, in English, with a safety tier.
 - **You decide.** Nothing is removed until you check a box and press a button.
 - **Local only.** No network, no telemetry, no accounts, no AI.
-- **No sudo.** Only touches files in your user library.
+- **No shell execution.** Everything happens through system APIs — no `codesign`, no `launchctl`, no `rm`.
 - **Honest.** No "URGENT 97% FULL" scare tactics.
 
-## Build
+## Full Disk Access
 
-Open the folder in Xcode:
+The Permissions tab reads macOS's TCC privacy database, which lives under system-protected paths. To use it, grant Inspector **Full Disk Access** in **System Settings → Privacy & Security → Full Disk Access**. The Storage and Boot tabs work without it.
 
-1. `File > New > Project > macOS App`
-2. Product name: `Inspector`
-3. Interface: SwiftUI, Language: Swift
-4. Save it to this directory, overwriting the default `Inspector/` sources with the ones already here
-5. Build & run (⌘R)
+## Build from source
 
-Minimum target: macOS 14 (Sonoma).
+```bash
+git clone https://github.com/sadiqkhzn/Inspector
+cd Inspector
+brew install xcodegen
+xcodegen generate
+open Inspector.xcodeproj
+```
 
-## License
-
-MIT. See `LICENSE`.
-
-## Build
-
-Open `Inspector.xcodeproj` in Xcode 15 or later and run with ⌘R.
-Minimum target: macOS 14 (Sonoma).
-
-If you don't yet have an `.xcodeproj`, create one via `File > New > Project > macOS App`,
-name it `Inspector`, and drop the files from `Inspector/` into the target.
+Minimum target: macOS 14 (Sonoma). Run the test suite with `xcodebuild test -scheme Inspector -destination 'platform=macOS'`.
 
 ## Roadmap
 
 - [x] v0.1 — Storage view
-- [x] v0.2 — Boot view (user LaunchAgents; system agents coming)
-- [ ] v0.3 — Permissions view (TCC database inspection)
+- [x] v0.2 — Boot view (user agents, system agents, system daemons)
+- [x] v0.3 — Permissions view (TCC database inspection)
 - [ ] v0.4 — Menu bar companion for quick scans
-- [ ] v1.0 — Signed .dmg release
-
-### Full Disk Access
-
-The v0.3+ Permissions view reads macOS's TCC privacy database, which lives
-under system-protected paths. To use it, grant Inspector **Full Disk
-Access** in **System Settings → Privacy & Security → Full Disk Access**.
-The Storage and Boot views work without it.
+- [ ] v1.0 — Notarised `.dmg` with a paid Apple Developer certificate
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for scope, PR conventions, and catalog
-entry guidelines. All contributors are expected to follow the
-[Code of Conduct](CODE_OF_CONDUCT.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for scope, PR conventions, and catalog entry guidelines. All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
